@@ -1,7 +1,8 @@
-import { Column, Entity, ManyToMany, ManyToOne, PrimaryGeneratedColumn, JoinTable } from "typeorm";
+import { Column, Entity, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, JoinTable } from "typeorm";
 import { Category } from "./category.entity";
 import { Tag } from "./tag.entity";
 import { User } from "./user.entity";
+import { ArticleSource } from "./article-source.entity";
 export enum ArticleType { NEWS = "news", POLICY = "policy", INSIGHT = "insight" }
 export enum ArticleStatus { DRAFT = "draft", REVIEW = "review", PUBLISHED = "published", OFFLINE = "offline" }
 @Entity({ name: "articles" })
@@ -16,4 +17,5 @@ export class Article {
   @Column({ name: "policy_highlights", type: "text", nullable: true }) policyHighlights!: string | null; @Column({ name: "impact_industries", type: "text", nullable: true }) impactIndustries!: string | null;
   @ManyToOne(() => Category, { nullable: true }) category!: Category | null; @ManyToOne(() => User, { nullable: true }) operator!: User | null;
   @ManyToMany(() => Tag) @JoinTable({ name: "content_tags", joinColumn: { name: "article_id", referencedColumnName: "id" }, inverseJoinColumn: { name: "tag_id", referencedColumnName: "id" } }) tags!: Tag[];
+  @OneToMany(() => ArticleSource, (source) => source.article, { cascade: true }) sources!: ArticleSource[];
 }

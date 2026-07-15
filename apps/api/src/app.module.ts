@@ -13,6 +13,7 @@ import { Category } from "./database/entities/category.entity";
 import { Tag } from "./database/entities/tag.entity";
 import { Article } from "./database/entities/article.entity";
 import { ArticleSource } from "./database/entities/article-source.entity";
+import { ArticlesModule } from "./articles/articles.module";
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ArticleSource } from "./database/entities/article-source.entity";
     }),
     AuthModule,
     UsersModule,
+    ArticlesModule,
   ],
   controllers: [HealthController],
 })
