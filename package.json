@@ -1,0 +1,21 @@
+{
+  "name": "opc-nexus",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OPC 财经社群与行业内容聚合平台",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace=@opc/web",
+    "dev:api": "npm run dev --workspace=@opc/api",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=22.0.0",
+    "npm": ">=10.0.0"
+  }
+}

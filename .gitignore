@@ -1,0 +1,25 @@
+# Dependencies and build outputs
+node_modules/
+.next/
+dist/
+coverage/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+
+# Environment files and local data
+.env
+.env.local
+.env.*.local
+!.env.example
+postgres-data/
+redis-data/
+
+# Logs and editor files
+*.log
+.DS_Store
+.idea/
+.vscode/

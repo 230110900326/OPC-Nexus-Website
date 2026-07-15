@@ -1,0 +1,40 @@
+"use client";
+
+import { FormEvent, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { signIn } from "../../lib/auth";
+
+export default function AuthPage() {
+  const router = useRouter();
+  const [mode, setMode] = useState<"login" | "register">("login");
+  const [error, setError] = useState("");
+  const [pending, setPending] = useState(false);
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setError(""); setPending(true);
+    const fields = new FormData(event.currentTarget);
+    const input = Object.fromEntries(fields.entries()) as Record<string, string>;
+    try { await signIn(mode, input); router.replace("/account"); }
+    catch (reason) { setError(reason instanceof Error ? reason.message : "暂时无法完成操作"); }
+    finally { setPending(false); }
+  }
+
+  return <main className="auth-page">
+    <Link className="auth-brand" href="/"><span>OPC</span> NEXUS</Link>
+    <section className="auth-shell">
+      <aside className="auth-aside"><p className="eyebrow">身份档案 · OPC</p><h1>从一次登录<br />开始<span>建立链接</span></h1><p>完善你的行业身份，让有价值的信息和对话更快找到你。</p><div className="auth-index"><b>01</b><span>身份验证</span><b>02</b><span>行业定位</span><b>03</b><span>专业连接</span></div></aside>
+      <section className="auth-card" aria-labelledby="auth-heading">
+        <div className="auth-tabs"><button className={mode === "login" ? "active" : ""} onClick={() => setMode("login")}>登录</button><button className={mode === "register" ? "active" : ""} onClick={() => setMode("register")}>创建账号</button></div>
+        <h2 id="auth-heading">{mode === "login" ? "欢迎回来" : "创建你的 OPC 身份"}</h2><p className="auth-help">{mode === "login" ? "使用你的邮箱继续。" : "我们只收集建立专业档案所需的信息。"}</p>
+        <form onSubmit={submit} noValidate>
+          {mode === "register" && <label>显示名称<input required name="displayName" minLength={2} maxLength={60} placeholder="例如：王知行" /></label>}
+          <label>邮箱<input required name="email" type="email" autoComplete="email" placeholder="name@company.com" /></label>
+          <label>密码<input required name="password" type="password" minLength={8} autoComplete={mode === "login" ? "current-password" : "new-password"} placeholder="至少 8 位，包含字母和数字" /></label>
+          {error && <p className="form-error" role="alert">{error}</p>}
+          <button className="auth-submit" disabled={pending}>{pending ? "正在处理…" : mode === "login" ? "登录并继续" : "创建账号"}<span>→</span></button>
+        </form>
+      </section>
+    </section>
+  </main>;
+}
