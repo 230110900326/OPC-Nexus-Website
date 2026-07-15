@@ -12,6 +12,6 @@ import { User } from "../database/entities/user.entity";
   imports: [JwtModule.register({}), TypeOrmModule.forFeature([User, Role])],
   controllers: [AuthController],
   providers: [AuthService, JwtAuthGuard, RolesGuard],
-  exports: [AuthService, JwtAuthGuard, RolesGuard],
+  exports: [AuthService, JwtAuthGuard, RolesGuard, JwtModule, TypeOrmModule],
 })
 export class AuthModule {}

@@ -36,6 +36,12 @@ export class User {
   @Column({ name: "is_active", type: "boolean", default: true })
   isActive!: boolean;
 
+  @Column({ name: "ban_reason", type: "varchar", length: 500, nullable: true })
+  banReason!: string | null;
+
+  @Column({ name: "banned_at", type: "timestamptz", nullable: true })
+  bannedAt!: Date | null;
+
   @ManyToMany(() => Role)
   @JoinTable({
     name: "user_roles",

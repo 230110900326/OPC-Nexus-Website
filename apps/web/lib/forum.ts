@@ -1,0 +1,45 @@
+import { authorizedRequest } from "./auth";
+import { getAccessToken, refreshSession } from "./auth";
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000";
+type Envelope<T> = { success: boolean; data?: T; error?: { message?: string } };
+async function publicRequest<T>(path: string) { const response = await fetch(`${apiBaseUrl}${path}`, { cache: "no-store" }); const body = await response.json() as Envelope<T>; if (!response.ok || !body.success || body.data === undefined) throw new Error(body.error?.message ?? "请求未能完成"); return body.data; }
+function query(input: Record<string, string | number | undefined>) { const params = new URLSearchParams(); Object.entries(input).forEach(([key, value]) => { if (value !== undefined && value !== "") params.set(key, String(value)); }); return params.size ? `?${params}` : ""; }
+export type ForumUser = { id: string; displayName: string; avatarUrl: string | null; industry: string | null; company: string | null; jobTitle: string | null };
+export type ForumSection = { id: string; slug: string; name: string; description: string; sortOrder: number; postCount?: number };
+export type ForumComment = { id: string; body: string; status: "published" | "hidden" | "deleted"; createdAt: string; updatedAt: string; parentId: string | null; author: ForumUser; children: ForumComment[] };
+export type ForumPost = { id: string; title: string; body: string; status: "draft" | "published" | "hidden"; isLocked: boolean; isPinned: boolean; isFeatured: boolean; viewCount: number; commentCount: number; heatScore: number | string; createdAt: string; updatedAt: string; section: ForumSection; author: ForumUser; comments?: ForumComment[] };
+export type ForumPostList = { items: ForumPost[]; pagination: { page: number; limit: number; total: number; totalPages: number } };
+export type InteractionSummary = { likes: number; favorites: number; followers: number };
+export type Report = { id: string; targetType: "post" | "comment" | "article" | "user"; targetId: string; reason: string; details: string | null; status: "pending" | "resolved" | "rejected"; createdAt: string; reporter: { displayName: string; email: string }; targetPreview?: { title: string; excerpt: string; postId?: string } | null };
+export type Event = { id: string; title: string; description: string; coverUrl: string | null; locationName: string; locationAddress: string | null; startsAt: string; endsAt: string; registrationDeadline: string | null; capacity: number | null; registrationFields: { key: string; label: string; required?: boolean; type?: string; options?: string[] }[]; status: "draft" | "published" | "cancelled" | "completed"; organizer: { id: string; displayName: string }; registrationCount: number; isRegistrationOpen: boolean };
+export type EventRegistration = { id: string; status: "pending" | "confirmed" | "cancelled"; formData: Record<string, string>; checkedInAt: string | null; createdAt: string; user?: { id: string; displayName: string; email: string }; event?: Event };
+export type Notification = { id: string; type: string; title: string; body: string; targetType: string | null; targetId: string | null; isRead: boolean; createdAt: string };
+export const getForumSections = () => publicRequest<ForumSection[]>("/forum/sections");
+export const getForumPosts = (input: Record<string, string | number | undefined> = {}) => publicRequest<ForumPostList>(`/forum/posts${query(input)}`);
+export const getForumPost = (id: string) => publicRequest<ForumPost>(`/forum/posts/${id}`);
+export const getOwnPost = (id: string) => authorizedRequest<ForumPost>(`/forum/me/posts/${id}`);
+export const saveForumPost = (id: string | null, input: Record<string, unknown>) => authorizedRequest<ForumPost>(id ? `/forum/posts/${id}` : "/forum/posts", { method: id ? "PATCH" : "POST", body: JSON.stringify(input) });
+export const deleteForumPost = (id: string) => authorizedRequest<{ id: string }>(`/forum/posts/${id}`, { method: "DELETE" });
+export const addComment = (postId: string, body: string, parentId?: string) => authorizedRequest<ForumComment>(`/forum/posts/${postId}/comments`, { method: "POST", body: JSON.stringify({ body, parentId }) });
+export const updateComment = (id: string, body: string) => authorizedRequest<ForumComment>(`/forum/comments/${id}`, { method: "PATCH", body: JSON.stringify({ body }) });
+export const deleteComment = (id: string) => authorizedRequest<{ id: string }>(`/forum/comments/${id}`, { method: "DELETE" });
+export const getInteractionSummary = (type: string, id: string) => publicRequest<InteractionSummary>(`/interactions/${type}/${id}`);
+export const addInteraction = (kind: "likes" | "favorites" | "follows", type: string, id: string) => authorizedRequest<{ active: boolean; count: number }>(`/interactions/${kind}/${type}/${id}`, { method: "POST" });
+export const removeInteraction = (kind: "likes" | "favorites" | "follows", type: string, id: string) => authorizedRequest<{ active: boolean; count: number }>(`/interactions/${kind}/${type}/${id}`, { method: "DELETE" });
+export const createReport = (input: Record<string, unknown>) => authorizedRequest<Report>("/reports", { method: "POST", body: JSON.stringify(input) });
+export const getReports = (status = "pending") => authorizedRequest<{ items: Report[]; pagination: ForumPostList["pagination"] }>(`/admin/reports?status=${status}`);
+export const resolveReport = (id: string, input: Record<string, unknown>) => authorizedRequest<Report>(`/admin/reports/${id}`, { method: "PATCH", body: JSON.stringify(input) });
+export const moderatePost = (id: string, action: string, reason: string) => authorizedRequest<ForumPost>(`/admin/moderation/posts/${id}`, { method: "PATCH", body: JSON.stringify({ action, reason }) });
+export const getEvents = () => publicRequest<{ items: Event[] }>("/events");
+export const getEvent = (id: string) => publicRequest<Event>(`/events/${id}`);
+export const registerForEvent = (id: string, formData: Record<string, string>) => authorizedRequest<EventRegistration>(`/events/${id}/registrations`, { method: "POST", body: JSON.stringify({ formData }) });
+export const getMyEventRegistrations = () => authorizedRequest<EventRegistration[]>("/events/mine/registrations");
+export const getNotifications = () => authorizedRequest<{ items: Notification[]; unreadCount: number }>("/notifications");
+export const markAllNotificationsRead = () => authorizedRequest<{ id: string | null }>("/notifications/read", { method: "PATCH" });
+export const markNotificationRead = (id: string) => authorizedRequest<{ id: string }>(`/notifications/${id}/read`, { method: "PATCH" });
+export const getManagedEvents = () => authorizedRequest<{ items: Event[] }>("/events/manage");
+export const getEventRegistrations = (id: string) => authorizedRequest<EventRegistration[]>(`/events/${id}/registrations`);
+export const updateEventRegistration = (eventId: string, registrationId: string, input: Record<string, unknown>) => authorizedRequest<EventRegistration>(`/events/${eventId}/registrations/${registrationId}`, { method: "PATCH", body: JSON.stringify(input) });
+export const createEvent = (input: Record<string, unknown>) => authorizedRequest<Event>("/events", { method: "POST", body: JSON.stringify(input) });
+export const updateEvent = (id: string, input: Record<string, unknown>) => authorizedRequest<Event>(`/events/${id}`, { method: "PATCH", body: JSON.stringify(input) });
+export async function downloadEventRegistrations(id: string) { let token = getAccessToken(); if (!token) { await refreshSession(); token = getAccessToken(); } const response = await fetch(`${apiBaseUrl}/events/${id}/registrations.csv`, { credentials: "include", headers: { Authorization: `Bearer ${token}` } }); if (!response.ok) throw new Error("报名名单导出失败"); const url = URL.createObjectURL(await response.blob()); const link = document.createElement("a"); link.href = url; link.download = `event-${id}-registrations.csv`; link.click(); URL.revokeObjectURL(url); }

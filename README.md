@@ -16,7 +16,7 @@ infra/       本地与生产基础设施配置
 docs/        架构、接口和运维文档
 ```
 
-## 本地启动（阶段 A）
+## 本地启动
 
 1. 复制 `.env.example` 为 `.env` 并按本地环境调整。
 2. 安装 Node.js 依赖：`npm install`。
@@ -27,6 +27,23 @@ docs/        架构、接口和运维文档
 
 ## 当前范围
 
-阶段 B 已加入 PostgreSQL 迁移、账号认证、角色权限与个人资料模块。Docker 可用后，先启动基础设施，再从 `apps/api` 执行 `npm run migration:run`；所有 JWT 密钥只放在本地 `.env` 中。
+阶段 A–D 已完成：基础设施、账号与角色、内容发布与审核、分类标签、安全首图上传、统一搜索、社区论坛、楼中楼评论、点赞收藏关注，以及举报审核和操作记录。
+
+Docker 可用后，先启动基础设施，再构建并执行迁移：
+
+```text
+npm run build --workspace=@opc/api
+npm run migration:run --workspace=@opc/api
+```
+
+图片默认写入本地 `uploads/`；将 `STORAGE_DRIVER` 改为 `s3` 并配置 `.env.example` 中的 S3 参数后，可切换到 S3 兼容对象存储。所有 JWT、数据库和对象存储密钥只放在本地 `.env` 中。
+
+完整检查命令：
+
+```text
+npm run lint
+npm run test
+npm run build
+```
 
 后续开发以《财经社群与行业内容聚合平台建设方案》为准。

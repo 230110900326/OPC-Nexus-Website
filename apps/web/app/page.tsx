@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { BrandLogo } from "../components/brand-logo";
 
 type ServiceState = "checking" | "available" | "unavailable";
-const navigation = ["首页", "资讯", "政策", "视频", "洞察", "社区", "活动", "热榜"];
+const navigation = [{ label: "首页", href: "/" }, { label: "资讯", href: "/news" }, { label: "政策", href: "/policies" }, { label: "洞察", href: "/insights" }, { label: "社区", href: "/community" }, { label: "搜索", href: "/search" }];
 
 export default function Home() {
   const [serviceState, setServiceState] = useState<ServiceState>("checking");
@@ -20,8 +22,8 @@ export default function Home() {
 
   return <main>
     <header className="topbar">
-      <a className="brand" href="#top" aria-label="OPC Nexus 首页"><span className="brand-mark">OPC</span><span>NEXUS</span></a>
-      <nav aria-label="主导航">{navigation.map((item) => <a href="#" key={item}>{item}</a>)}</nav>
+      <BrandLogo href="#top" />
+      <nav aria-label="主导航">{navigation.map((item) => <Link href={item.href} key={item.href}>{item.label}</Link>)}</nav>
         <a className="login-button" href="/auth">登录 / 注册</a>
     </header>
     <section className="hero" id="top">
@@ -29,7 +31,7 @@ export default function Home() {
         <p className="eyebrow">OPC FINANCIAL COMMUNITY · 01</p>
         <h1>让行业信息<br />变成<span>下一步判断</span></h1>
         <p className="intro">面向财经、产业、投资与企业经营者的内容与交流平台。以高质量信息，连接有价值的行业对话。</p>
-        <div className="hero-actions"><button className="primary-action" type="button">浏览今日洞察 <span>→</span></button><p className="motto">洞察 <i /> 链接 <i /> 增长</p></div>
+        <div className="hero-actions"><Link className="primary-action" href="/insights">浏览今日洞察 <span>→</span></Link><p className="motto">洞察 <i /> 链接 <i /> 增长</p></div>
       </div>
       <aside className="observation-grid" aria-label="今日观察">
         <div className="grid-heading"><span>今日观察</span><span>07 · 15</span></div>

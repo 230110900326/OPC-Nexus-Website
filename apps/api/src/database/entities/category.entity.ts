@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity({ name: "categories" })
 export class Category {
@@ -7,6 +7,6 @@ export class Category {
   @Column({ length: 80 }) name!: string;
   @Column({ name: "sort_order", default: 0 }) sortOrder!: number;
   @Column({ name: "is_active", default: true }) isActive!: boolean;
-  @ManyToOne(() => Category, (category) => category.children, { nullable: true }) parent!: Category | null;
+  @ManyToOne(() => Category, (category) => category.children, { nullable: true }) @JoinColumn({ name: "parent_id" }) parent!: Category | null;
   @OneToMany(() => Category, (category) => category.parent) children!: Category[];
 }

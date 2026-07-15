@@ -1,0 +1,17 @@
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { User } from "./user.entity";
+
+export enum NotificationType { COMMENT_REPLY = "comment_reply", CONTENT_MODERATED = "content_moderated", FOLLOWED_AUTHOR_UPDATE = "followed_author_update", EVENT_STATUS_CHANGED = "event_status_changed" }
+
+@Entity({ name: "notifications" })
+export class Notification {
+  @PrimaryGeneratedColumn("uuid") id!: string;
+  @ManyToOne(() => User, { nullable: false, onDelete: "CASCADE" }) @JoinColumn({ name: "user_id" }) user!: User;
+  @Column({ type: "varchar", length: 40 }) type!: NotificationType;
+  @Column({ length: 160 }) title!: string;
+  @Column({ type: "text" }) body!: string;
+  @Column({ name: "target_type", type: "varchar", length: 40, nullable: true }) targetType!: string | null;
+  @Column({ name: "target_id", type: "uuid", nullable: true }) targetId!: string | null;
+  @Column({ name: "is_read", default: false }) isRead!: boolean;
+  @CreateDateColumn({ name: "created_at", type: "timestamptz" }) createdAt!: Date;
+}

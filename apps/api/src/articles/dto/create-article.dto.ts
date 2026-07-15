@@ -16,6 +16,7 @@ export class CreateArticleDto {
   @IsOptional() @IsString() @Length(1, 160) policyIssuer?: string;
   @IsOptional() @IsString() @Length(1, 100) policyNumber?: string;
   @IsOptional() @IsDateString() effectiveDate?: string;
+  @IsOptional() @IsDateString() publishedAt?: string;
   @IsOptional() @IsString() @Length(1, 100) applicableRegion?: string;
   @IsOptional() @IsString() @Length(1, 40) policyStatus?: string;
   @IsOptional() @IsString() policyHighlights?: string;

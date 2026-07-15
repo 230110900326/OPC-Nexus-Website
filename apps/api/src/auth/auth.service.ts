@@ -38,7 +38,7 @@ export class AuthService {
       const payload = await this.jwtService.verifyAsync<AuthUser & { type: string }>(refreshToken, { secret: this.config.getOrThrow<string>("JWT_REFRESH_SECRET") });
       if (payload.type !== "refresh") throw new Error("Unexpected token");
       const user = await this.users.createQueryBuilder("user").addSelect("user.refreshTokenHash").leftJoinAndSelect("user.roles", "role").where("user.id = :id", { id: payload.id }).getOne();
-      if (!user?.refreshTokenHash || !(await bcrypt.compare(refreshToken, user.refreshTokenHash))) throw new Error("Invalid token");
+      if (!user?.isActive || !user.refreshTokenHash || !(await bcrypt.compare(refreshToken, user.refreshTokenHash))) throw new Error("Invalid token");
       return this.issueSession(user);
     } catch {
       throw new UnauthorizedException("登录状态已失效，请重新登录");
@@ -59,7 +59,7 @@ export class AuthService {
   }
 
   public publicUser(user: User) {
-    const { passwordHash: _, refreshTokenHash: __, ...safeUser } = user;
+    const { passwordHash: _, refreshTokenHash: __, banReason: ___, bannedAt: ____, ...safeUser } = user;
     return { ...safeUser, roles: user.roles?.map((role) => role.name) ?? [] };
   }
 }

@@ -12,7 +12,10 @@
     "dev:api": "npm run dev --workspace=@opc/api",
     "build": "npm run build --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
-    "lint": "npm run lint --workspaces --if-present"
+    "lint": "npm run lint --workspaces --if-present",
+    "docker:up": "docker compose --env-file .env -f infra/docker-compose.yml up -d --build",
+    "docker:down": "docker compose --env-file .env -f infra/docker-compose.yml down",
+    "docker:logs": "docker compose --env-file .env -f infra/docker-compose.yml logs -f"
   },
   "engines": {
     "node": ">=22.0.0",

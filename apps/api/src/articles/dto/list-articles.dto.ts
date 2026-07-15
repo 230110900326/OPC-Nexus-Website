@@ -9,7 +9,7 @@ export class ListArticlesDto {
   @IsOptional() @IsString() category?: string;
   @IsOptional() @IsString() source?: string;
   @IsOptional() @IsString() q?: string;
-  @IsOptional() @Transform(({ value }) => value === "hot" ? "hot" : "latest") sort: "latest" | "hot" = "latest";
+  @IsOptional() @Transform(({ value }) => ["hot", "recommended"].includes(value) ? value : "latest") sort: "latest" | "hot" | "recommended" = "latest";
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) page = 1;
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(50) limit = 12;
 }

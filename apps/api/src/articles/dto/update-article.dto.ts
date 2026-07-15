@@ -13,11 +13,12 @@ export class UpdateArticleDto {
   @IsOptional() @IsUUID() categoryId?: string;
   @IsOptional() @IsArray() @ArrayMaxSize(12) @IsUUID("4", { each: true }) tagIds?: string[];
   @IsOptional() @IsArray() @ArrayMaxSize(8) @ValidateNested({ each: true }) @Type(() => ArticleSourceDto) sources?: ArticleSourceDto[];
-  @IsOptional() @IsString() @Length(1, 160) policyIssuer?: string;
-  @IsOptional() @IsString() @Length(1, 100) policyNumber?: string;
-  @IsOptional() @IsDateString() effectiveDate?: string;
-  @IsOptional() @IsString() @Length(1, 100) applicableRegion?: string;
-  @IsOptional() @IsString() @Length(1, 40) policyStatus?: string;
-  @IsOptional() @IsString() policyHighlights?: string;
-  @IsOptional() @IsString() impactIndustries?: string;
+  @IsOptional() @IsString() @Length(1, 160) policyIssuer?: string | null;
+  @IsOptional() @IsString() @Length(1, 100) policyNumber?: string | null;
+  @IsOptional() @IsDateString() effectiveDate?: string | null;
+  @IsOptional() @IsDateString() publishedAt?: string | null;
+  @IsOptional() @IsString() @Length(1, 100) applicableRegion?: string | null;
+  @IsOptional() @IsString() @Length(1, 40) policyStatus?: string | null;
+  @IsOptional() @IsString() policyHighlights?: string | null;
+  @IsOptional() @IsString() impactIndustries?: string | null;
 }

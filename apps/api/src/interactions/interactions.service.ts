@@ -1,0 +1,25 @@
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { Article, ArticleStatus } from "../database/entities/article.entity";
+import { Comment, CommentStatus } from "../database/entities/comment.entity";
+import { Favorite, FavoriteTargetType } from "../database/entities/favorite.entity";
+import { Follow, FollowTargetType } from "../database/entities/follow.entity";
+import { Like, LikeTargetType } from "../database/entities/like.entity";
+import { Post, PostStatus } from "../database/entities/post.entity";
+import { User } from "../database/entities/user.entity";
+
+@Injectable()
+export class InteractionsService {
+  constructor(@InjectRepository(Like) private readonly likes: Repository<Like>, @InjectRepository(Favorite) private readonly favorites: Repository<Favorite>, @InjectRepository(Follow) private readonly follows: Repository<Follow>, @InjectRepository(Article) private readonly articles: Repository<Article>, @InjectRepository(Post) private readonly posts: Repository<Post>, @InjectRepository(Comment) private readonly comments: Repository<Comment>, @InjectRepository(User) private readonly users: Repository<User>) {}
+  async addLike(userId: string, targetType: LikeTargetType, targetId: string) { await this.validateContent(targetType, targetId); const where = { user: { id: userId }, targetType, targetId }; if (!await this.likes.exists({ where })) await this.likes.save(this.likes.create({ user: { id: userId } as User, targetType, targetId })); return { active: true, count: await this.likes.count({ where: { targetType, targetId } }) }; }
+  async removeLike(userId: string, targetType: LikeTargetType, targetId: string) { await this.likes.delete({ user: { id: userId }, targetType, targetId }); return { active: false, count: await this.likes.count({ where: { targetType, targetId } }) }; }
+  async addFavorite(userId: string, targetType: FavoriteTargetType, targetId: string) { await this.validateContent(targetType, targetId); const where = { user: { id: userId }, targetType, targetId }; if (!await this.favorites.exists({ where })) await this.favorites.save(this.favorites.create({ user: { id: userId } as User, targetType, targetId })); return { active: true, count: await this.favorites.count({ where: { targetType, targetId } }) }; }
+  async removeFavorite(userId: string, targetType: FavoriteTargetType, targetId: string) { await this.favorites.delete({ user: { id: userId }, targetType, targetId }); return { active: false, count: await this.favorites.count({ where: { targetType, targetId } }) }; }
+  async addFollow(userId: string, targetType: FollowTargetType, targetId: string) { await this.validateFollow(targetType, targetId); if (targetType === FollowTargetType.USER && userId === targetId) throw new BadRequestException("不能关注自己"); const where = { follower: { id: userId }, targetType, targetId }; if (!await this.follows.exists({ where })) await this.follows.save(this.follows.create({ follower: { id: userId } as User, targetType, targetId })); return { active: true, count: await this.follows.count({ where: { targetType, targetId } }) }; }
+  async removeFollow(userId: string, targetType: FollowTargetType, targetId: string) { await this.follows.delete({ follower: { id: userId }, targetType, targetId }); return { active: false, count: await this.follows.count({ where: { targetType, targetId } }) }; }
+  async summary(targetType: string, targetId: string) { return { likes: await this.likes.count({ where: { targetType: targetType as LikeTargetType, targetId } }), favorites: await this.favorites.count({ where: { targetType: targetType as FavoriteTargetType, targetId } }), followers: await this.follows.count({ where: { targetType: targetType as FollowTargetType, targetId } }) }; }
+  async mine(userId: string) { const [likes, favorites, follows] = await Promise.all([this.likes.find({ where: { user: { id: userId } }, order: { createdAt: "DESC" } }), this.favorites.find({ where: { user: { id: userId } }, order: { createdAt: "DESC" } }), this.follows.find({ where: { follower: { id: userId } }, order: { createdAt: "DESC" } })]); return { likes, favorites, follows }; }
+  private async validateContent(targetType: LikeTargetType | FavoriteTargetType, id: string) { if (targetType === LikeTargetType.VIDEO) return; let exists = false; if (targetType === LikeTargetType.ARTICLE) exists = await this.articles.exists({ where: { id, status: ArticleStatus.PUBLISHED } }); else if (targetType === LikeTargetType.POST) exists = await this.posts.exists({ where: { id, status: PostStatus.PUBLISHED } }); else if (targetType === LikeTargetType.COMMENT) exists = await this.comments.exists({ where: { id, status: CommentStatus.PUBLISHED } }); if (!exists) throw new NotFoundException("互动目标不存在或不可见"); }
+  private async validateFollow(targetType: FollowTargetType, id: string) { if (targetType === FollowTargetType.CREATOR) return; if (!await this.users.exists({ where: { id, isActive: true } })) throw new NotFoundException("关注目标不存在"); }
+}

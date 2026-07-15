@@ -1,0 +1,16 @@
+.git
+.agents
+**/.next
+**/dist
+**/node_modules
+**/coverage
+/uploads
+/apps/api/uploads
+**/*.tsbuildinfo
+.env
+.env.*
+!.env.example
+*.log
+**/__pycache__
+**/.pytest_cache
+**/.venv

@@ -12,6 +12,7 @@ import { UpdateArticleDto } from "./dto/update-article.dto";
 
 const editors = [SystemRole.EDITOR, SystemRole.OPERATOR, SystemRole.ADMIN];
 const publishers = [SystemRole.OPERATOR, SystemRole.ADMIN];
+const previewers = [SystemRole.EDITOR, SystemRole.MODERATOR, SystemRole.OPERATOR, SystemRole.ADMIN];
 @Controller()
 export class ArticlesController {
   constructor(private readonly articles: ArticlesService) {}
@@ -19,9 +20,12 @@ export class ArticlesController {
   @Get("articles/:slug") async detail(@Param("slug") slug: string) { return { success: true, data: await this.articles.findPublic(slug) }; }
   @Get("admin/articles") @UseGuards(JwtAuthGuard, RolesGuard) @Roles(...editors) async adminList(@Query() query: ListArticlesDto) { return { success: true, data: await this.articles.list(query, true) }; }
   @Get("admin/articles/:id") @UseGuards(JwtAuthGuard, RolesGuard) @Roles(...editors) async adminDetail(@Param("id") id: string) { return { success: true, data: await this.articles.findAdmin(id) }; }
+  @Get("admin/articles/:id/preview") @UseGuards(JwtAuthGuard, RolesGuard) @Roles(...previewers) async preview(@Param("id") id: string) { return { success: true, data: await this.articles.findAdmin(id) }; }
   @Post("admin/articles") @UseGuards(JwtAuthGuard, RolesGuard) @Roles(...editors) async create(@Body() input: CreateArticleDto, @AuthenticatedUser() user: AuthUser) { return { success: true, data: await this.articles.create(input, user) }; }
   @Patch("admin/articles/:id") @UseGuards(JwtAuthGuard, RolesGuard) @Roles(...editors) async update(@Param("id") id: string, @Body() input: UpdateArticleDto, @AuthenticatedUser() user: AuthUser) { return { success: true, data: await this.articles.update(id, input, user) }; }
   @Post("admin/articles/:id/submit") @UseGuards(JwtAuthGuard, RolesGuard) @Roles(...editors) async submit(@Param("id") id: string, @AuthenticatedUser() user: AuthUser) { return { success: true, data: await this.articles.submit(id, user) }; }
   @Post("admin/articles/:id/publish") @UseGuards(JwtAuthGuard, RolesGuard) @Roles(...publishers) async publish(@Param("id") id: string, @AuthenticatedUser() user: AuthUser) { return { success: true, data: await this.articles.publish(id, user) }; }
   @Post("admin/articles/:id/offline") @UseGuards(JwtAuthGuard, RolesGuard) @Roles(...publishers) async offline(@Param("id") id: string, @AuthenticatedUser() user: AuthUser) { return { success: true, data: await this.articles.offline(id, user) }; }
+  @Post("admin/articles/:id/return") @UseGuards(JwtAuthGuard, RolesGuard) @Roles(...publishers) async returnToDraft(@Param("id") id: string, @AuthenticatedUser() user: AuthUser) { return { success: true, data: await this.articles.returnToDraft(id, user) }; }
+  @Post("admin/articles/:id/restore") @UseGuards(JwtAuthGuard, RolesGuard) @Roles(...publishers) async restore(@Param("id") id: string, @AuthenticatedUser() user: AuthUser) { return { success: true, data: await this.articles.restore(id, user) }; }
 }

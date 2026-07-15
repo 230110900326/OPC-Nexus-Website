@@ -1,9 +1,9 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "../../lib/auth";
+import { BrandLogo } from "../../components/brand-logo";
 
 export default function AuthPage() {
   const router = useRouter();
@@ -21,7 +21,7 @@ export default function AuthPage() {
   }
 
   return <main className="auth-page">
-    <Link className="auth-brand" href="/"><span>OPC</span> NEXUS</Link>
+    <BrandLogo tone="light" />
     <section className="auth-shell">
       <aside className="auth-aside"><p className="eyebrow">身份档案 · OPC</p><h1>从一次登录<br />开始<span>建立链接</span></h1><p>完善你的行业身份，让有价值的信息和对话更快找到你。</p><div className="auth-index"><b>01</b><span>身份验证</span><b>02</b><span>行业定位</span><b>03</b><span>专业连接</span></div></aside>
       <section className="auth-card" aria-labelledby="auth-heading">
