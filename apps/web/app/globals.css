@@ -150,3 +150,234 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 @media (max-width:800px) { .demand-marketplace,.demand-detail-page,.demand-rules-page,.public-profile-page { width:calc(100% - 32px); }.demand-hero { grid-template-columns:1fr; }.demand-hero > div { padding:55px 0; }.matching-manifest { min-height:360px; padding:28px; }.demand-filter-deck { grid-template-columns:1fr 1fr; }.demand-filter-deck > label,.demand-filter-deck > form { border-bottom:1px solid var(--line); }.demand-filter-deck > form { grid-column:1/-1; }.demand-board-layout { grid-template-columns:1fr; }.demand-sidecar { position:static; grid-template-columns:1fr 1fr; }.demand-ticket { grid-template-columns:55px minmax(0,1fr); }.match-rail { grid-column:1/-1; flex-direction:row; padding:18px 15px; border-left:0; border-top:1px solid var(--line); }.match-rail::before { left:11%; right:11%; top:23px; bottom:auto; width:auto; height:1px; }.match-rail > div { width:33%; padding-top:15px; text-align:center; }.match-rail i { left:50%; top:-13px; transform:translateX(-50%); }.demand-ticket:hover .match-rail i { transform:translateX(-50%) scale(1.25); }.demand-editor-shell,.demand-account-shell { width:calc(100% - 32px); }.demand-editor-heading,.demand-form,.demand-detail-layout,.demand-config-form,.review-split,.demand-dashboard-grid { grid-template-columns:1fr; }.demand-form-aside,.demand-action-column { position:static; }.demand-form-aside { grid-row:1; }.demand-detail-heading { grid-template-columns:1fr; }.demand-seal { width:170px; }.demand-author-block { grid-template-columns:55px 1fr; }.demand-author-block > a { grid-column:2; justify-self:start; }.review-split > article { border-right:0; border-bottom:1px solid var(--line); }.demand-account-heading,.ops-admin-title { align-items:flex-start; flex-direction:column; }.my-demand-list article,.my-connect-list article { grid-template-columns:100px 1fr; }.my-demand-actions { grid-column:2; flex-direction:row; flex-wrap:wrap; }.demand-kpi-grid { grid-template-columns:repeat(2,1fr); }.demand-kpi-grid article:nth-child(n) { border-right:1px solid var(--line); }.demand-kpi-grid article:nth-child(2n) { border-right:0; }.demand-rules-layout { grid-template-columns:1fr; gap:30px; }.demand-rules-layout nav { position:static; grid-template-columns:repeat(3,1fr); }.public-profile-page > section { grid-template-columns:1fr; gap:0; }.public-profile-page article { padding:40px 0; } }
 @media (max-width:560px) { .demand-hero h1,.demand-editor-heading h1,.demand-account-heading h1,.ops-admin-title h1 { font-size:45px; }.demand-hero-actions { align-items:flex-start; flex-direction:column; }.demand-filter-deck { grid-template-columns:1fr; }.demand-filter-deck > form { grid-column:auto; }.demand-sidecar { grid-template-columns:1fr; }.demand-ticket { grid-template-columns:45px minmax(0,1fr); }.demand-ticket-code b { font-size:19px; }.demand-ticket-body { padding:22px 13px; }.demand-ticket h3 { font-size:22px; }.demand-ticket footer a { width:100%; margin-left:0; }.demand-editor-page > header { width:calc(100% - 32px); }.demand-editor-shell { padding-top:42px; }.demand-form fieldset { padding:20px 15px; }.demand-industry-checks,.demand-image-strip,.demand-detail-images { grid-template-columns:1fr; }.demand-contact-list > div { grid-template-columns:105px 1fr; }.demand-contact-list > div button { grid-column:2; justify-self:end; padding:5px 8px; }.demand-form-actions { flex-direction:column; }.demand-form-actions button { width:100%; }.owner-connections article { grid-template-columns:45px 1fr; }.owner-connections select { grid-column:2; }.demand-modal { padding:28px 20px; }.demand-account-tabs { overflow:auto; }.demand-account-tabs button { white-space:nowrap; }.account-tally { display:none; }.my-demand-list article,.my-connect-list article { grid-template-columns:1fr; }.my-demand-actions { grid-column:auto; }.connect-party { align-items:flex-start; }.demand-admin-toolbar { align-items:flex-start; flex-direction:column; }.demand-admin-toolbar > div,.demand-admin-toolbar form,.dashboard-filters { width:100%; flex-wrap:wrap; }.demand-admin-toolbar > div button { flex:1; }.demand-kpi-grid { grid-template-columns:1fr; }.demand-kpi-grid article:nth-child(n) { border-right:0; }.demand-rules-layout nav { grid-template-columns:1fr 1fr; }.demand-rules-layout article > section { grid-template-columns:35px 1fr; }.demand-rules-layout footer { align-items:flex-start; flex-direction:column; } }
 @media (prefers-reduced-motion:reduce) { .demand-ticket { animation:none; }.match-rail i { transition:none; } }
+
+/* Button visibility pass: keep the editorial, square-edged visual language while
+   making every action legible against the site's light paper surfaces. */
+:root {
+  --control-surface:#d7e3e0;
+  --control-surface-hover:#c2d6d1;
+  --control-border:#25495b;
+  --control-shadow:rgba(11,29,44,.24);
+  --control-disabled:#e2e0d9;
+  --control-disabled-ink:#64727a;
+  --control-focus:#9f4c29;
+}
+
+button {
+  border:1px solid var(--control-border);
+  background-color:var(--control-surface);
+  color:var(--ink);
+  cursor:pointer;
+  font-weight:700;
+  transition:background-color .16s ease,border-color .16s ease,box-shadow .16s ease,color .16s ease,filter .16s ease;
+}
+button:not(:disabled):hover { filter:brightness(.94); }
+
+/* Secondary actions: a cool ledger tint, dark rule and a physical lower edge. */
+.login-button,
+.account-header button,
+.pagination button,
+.audit-pagination button,
+.editor-actions button,
+.admin-filters form button,
+.taxonomy-form button,
+.taxonomy-list button,
+.post-byline button,
+.post-actions button,
+.post-actions a,
+.moderator-strip button,
+.comment-actions button,
+.report-actions a,
+.report-actions button,
+.registration-table article button,
+.video-channel header button,
+.home-failure button,
+.config-workbench form > header button,
+.config-registry td button,
+.audit-filters button[type="button"],
+.demand-filter-deck form button,
+.demand-contact-list button,
+.add-contact,
+.demand-form-actions > button:first-child,
+.demand-secondary-actions button,
+.demand-status-tabs button,
+.my-demand-actions button,
+.my-demand-actions a,
+.demand-admin-toolbar button,
+.dashboard-filters button,
+.table-actions button,
+.demand-review-desk > header button,
+.review-actions button,
+.modal-close {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:36px;
+  padding:8px 11px;
+  border:1px solid var(--control-border);
+  background:var(--control-surface);
+  color:var(--ink);
+  box-shadow:0 2px 0 var(--control-shadow);
+  font-size:12px;
+  font-weight:700;
+}
+
+/* Filters and tabs read as controls even before one is selected. */
+.auth-tabs button,
+.channel-controls button,
+.section-rail button,
+.feed-sort button,
+.moderation-tabs button,
+.video-channel header button,
+.signal-toolbar button,
+.ranking-controls button,
+.hot-demand-panel button,
+.demand-account-tabs button,
+.demand-admin-tabs button {
+  min-height:36px;
+  padding:8px 12px;
+  border:1px solid #718894;
+  background:#e4ebe9;
+  color:var(--ink);
+  box-shadow:0 2px 0 rgba(11,29,44,.14);
+  font-size:12px;
+  font-weight:700;
+}
+.section-rail { gap:6px; }
+.section-rail button { padding:13px 12px; }
+.auth-tabs { gap:7px; }
+
+.auth-tabs button.active,
+.channel-controls button.selected,
+.section-rail button.active,
+.feed-sort button.active,
+.post-actions button.active,
+.moderation-tabs button.active,
+.video-channel header button.active,
+.signal-toolbar button.active,
+.ranking-controls button.active,
+.hot-demand-panel button.active,
+.demand-account-tabs button.active,
+.demand-status-tabs button.active,
+.demand-admin-tabs button.active,
+.event-manager-grid > section:first-child button.active {
+  border-color:var(--ink);
+  background:var(--ink);
+  color:var(--paper);
+  box-shadow:0 3px 0 var(--copper);
+}
+
+/* Primary actions keep the site's ink-block signature and gain a copper edge. */
+.primary-action,
+button.auth-submit,
+.source-panel a,
+button.admin-primary,
+.community-manifesto a,
+.comment-compose button,
+.reply-form button,
+.registration-panel button,
+.notifications-page header button,
+a.primary-link,
+.event-editor button,
+.focus-action,
+button.ops-primary,
+a.ops-primary,
+.dashboard-title form button,
+.audit-filters button[type="submit"],
+button.demand-primary,
+a.demand-primary,
+button.compose-submit {
+  min-height:40px;
+  border:1px solid var(--ink);
+  background:var(--ink);
+  color:var(--paper);
+  box-shadow:0 3px 0 var(--copper);
+  font-weight:700;
+}
+.search-hero button {
+  border:1px solid #e2a277;
+  background:#914826;
+  color:#fff;
+  box-shadow:0 3px 0 #d58b59;
+  font-weight:800;
+}
+
+/* Pagination is deliberately larger because it is a primary navigation task. */
+.pagination { flex-wrap:wrap; gap:16px; }
+.pagination button,
+.audit-pagination button {
+  min-width:96px;
+  min-height:44px;
+  padding:11px 18px;
+  border:2px solid var(--ink);
+  background:#c9dbd6;
+  color:var(--ink);
+  box-shadow:0 3px 0 rgba(11,29,44,.28);
+  font-size:13px;
+  font-weight:800;
+}
+.pagination span,
+.audit-pagination span {
+  color:var(--ink);
+  font-weight:700;
+}
+
+/* Clickable rows and dark-surface actions need their own contrast treatment. */
+.notification-list button,
+.event-manager-grid > section:first-child button {
+  border:1px solid #93a8b1;
+  background:#e6ecea;
+  color:var(--ink);
+  box-shadow:0 2px 0 rgba(11,29,44,.14);
+}
+.author-ledger button,
+.contact-values button {
+  border:1px solid rgba(255,255,255,.72);
+  background:rgba(246,244,239,.12);
+  color:#fff;
+  box-shadow:0 2px 0 rgba(11,29,44,.28);
+  font-weight:700;
+}
+.author-ledger button { min-height:36px; padding:8px 11px; }
+.contact-values button { margin-top:7px; padding:11px 9px; }
+.demand-image-strip button { border:1px solid rgba(255,255,255,.8); box-shadow:0 2px 0 rgba(11,29,44,.35); }
+.modal-close { display:grid; place-items:center; width:38px; height:38px; padding:0; font-size:22px; }
+
+.report-actions .danger,
+.config-registry td button.danger,
+.demand-admin-toolbar .danger,
+.table-actions .danger,
+.review-actions .danger {
+  border-color:#762813;
+  background:#8d341e;
+  color:#fff;
+  box-shadow:0 2px 0 rgba(80,24,10,.32);
+}
+
+button:disabled:not([data-preserve-disabled-style]) {
+  border-color:#a7b0b4;
+  background:var(--control-disabled);
+  color:var(--control-disabled-ink);
+  box-shadow:none;
+  cursor:not-allowed;
+  filter:none;
+  opacity:1;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline:3px solid var(--control-focus);
+  outline-offset:3px;
+}
+
+@media (max-width:560px) {
+  .pagination { gap:10px; }
+  .pagination button,.audit-pagination button { min-width:82px; padding-inline:12px; }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  button { transition:none; }
+}
