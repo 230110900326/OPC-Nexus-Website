@@ -1,0 +1,4 @@
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Article } from "./article.entity";
+@Entity({ name: "link_checks" })
+export class LinkCheck { @PrimaryGeneratedColumn("uuid") id!: string; @ManyToOne(() => Article, { nullable: false, onDelete: "CASCADE" }) @JoinColumn({ name: "article_id" }) article!: Article; @Column({ name: "status_code", type: "integer", nullable: true }) statusCode!: number | null; @Column({ name: "redirect_url", type: "varchar", length: 1000, nullable: true }) redirectUrl!: string | null; @Column({ name: "is_healthy", default: false }) isHealthy!: boolean; @Column({ name: "error_message", type: "text", nullable: true }) errorMessage!: string | null; @CreateDateColumn({ name: "checked_at", type: "timestamptz" }) checkedAt!: Date; }

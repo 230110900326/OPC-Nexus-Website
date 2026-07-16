@@ -1,0 +1,3 @@
+import { QueryRunner } from "typeorm";
+import { RankingSchema1710000008000 } from "./1710000008000-ranking-schema";
+describe("Stage H migration", () => { it("creates append-only metric history and anomaly audit indexes", async () => { const statements: string[] = []; const runner = { query: jest.fn(async (sql: string) => { statements.push(sql); }) } as unknown as QueryRunner; await new RankingSchema1710000008000().up(runner); const sql = statements.join("\n"); expect(sql).toContain('CREATE TABLE "content_metrics"'); expect(sql).toContain('CREATE TABLE "interaction_audits"'); expect(sql).toContain("IDX_content_metrics_history"); expect(sql).toContain("counts_toward_metrics"); }); });

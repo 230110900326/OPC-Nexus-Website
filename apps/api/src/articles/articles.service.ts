@@ -10,13 +10,17 @@ import { User } from "../database/entities/user.entity";
 import { CreateArticleDto } from "./dto/create-article.dto";
 import { ListArticlesDto } from "./dto/list-articles.dto";
 import { UpdateArticleDto } from "./dto/update-article.dto";
+import { RankingService } from "../ranking/ranking.service";
+import { MetricContentType } from "../database/entities/content-metric.entity";
+import { AuditService } from "../audit/audit.service";
+import { AuditAction } from "../database/entities/audit-log.entity";
 
 const publicRelations = { category: true, tags: true, sources: true } as const;
 const adminRelations = { ...publicRelations, operator: true } as const;
 
 @Injectable()
 export class ArticlesService {
-  constructor(@InjectRepository(Article) private readonly articles: Repository<Article>, @InjectRepository(Category) private readonly categories: Repository<Category>, @InjectRepository(Tag) private readonly tags: Repository<Tag>) {}
+  constructor(@InjectRepository(Article) private readonly articles: Repository<Article>, @InjectRepository(Category) private readonly categories: Repository<Category>, @InjectRepository(Tag) private readonly tags: Repository<Tag>, private readonly ranking: RankingService, private readonly audit: AuditService) {}
 
   async list(input: ListArticlesDto, includeUnpublished = false) {
     const query = this.articles.createQueryBuilder("article").leftJoinAndSelect("article.category", "category").leftJoinAndSelect("article.tags", "tag").leftJoinAndSelect("article.sources", "source");
@@ -38,6 +42,7 @@ export class ArticlesService {
 
   async findPublic(slug: string) {
     const article = await this.findOne(slug, false);
+    await this.ranking.recordDelta(article.type === "policy" ? MetricContentType.POLICY : MetricContentType.ARTICLE, article.id, { readCount: 1 });
     const related = await this.articles.createQueryBuilder("article").leftJoinAndSelect("article.category", "category").leftJoinAndSelect("article.tags", "tag").leftJoinAndSelect("article.sources", "source").where("article.status = :status AND article.published_at <= NOW() AND article.id != :id", { status: ArticleStatus.PUBLISHED, id: article.id }).andWhere(article.category ? "article.category_id = :categoryId" : "article.type = :type", article.category ? { categoryId: article.category.id } : { type: article.type }).orderBy("article.heat_score", "DESC").addOrderBy("article.published_at", "DESC").take(3).getMany();
     return Object.assign(article, { related });
   }
@@ -50,10 +55,12 @@ export class ArticlesService {
     article.category = input.categoryId ? await this.category(input.categoryId) : null;
     article.tags = await this.resolveTags(input.tagIds ?? []);
     article.sources = this.normalizeSources(input.sources ?? []) as ArticleSource[];
-    return this.findAdmin((await this.articles.save(article)).id);
+    const saved = await this.findAdmin((await this.articles.save(article)).id);
+    await this.audit.record({ actor, action: AuditAction.CONTENT_CREATE, targetType: "article", targetId: saved.id, metadata: { title: saved.title, type: saved.type, status: saved.status } });
+    return saved;
   }
   async update(id: string, input: UpdateArticleDto, actor: AuthUser) {
-    return this.articles.manager.transaction(async (manager) => {
+    const saved = await this.articles.manager.transaction(async (manager) => {
       const articleRepository = manager.getRepository(Article); const sourceRepository = manager.getRepository(ArticleSource); const categoryRepository = manager.getRepository(Category); const tagRepository = manager.getRepository(Tag);
       const article = await articleRepository.findOne({ where: { id }, relations: adminRelations }); if (!article) throw new NotFoundException("文章不存在"); if (article.status === ArticleStatus.PUBLISHED) throw new BadRequestException("已发布文章请先下线后再编辑");
       if (input.slug && input.slug !== article.slug && await articleRepository.exists({ where: { slug: input.slug } })) throw new ConflictException("文章 slug 已存在");
@@ -66,12 +73,14 @@ export class ArticlesService {
       if (sources?.length) await sourceRepository.save(sources.map((source) => sourceRepository.create({ ...source, article: { id } as Article })));
       const saved = await articleRepository.findOne({ where: { id }, relations: adminRelations }); if (!saved) throw new NotFoundException("文章不存在"); return saved;
     });
+    await this.audit.record({ actor, action: AuditAction.CONTENT_EDIT, targetType: "article", targetId: saved.id, metadata: { fields: Object.keys(input), title: saved.title } });
+    return saved;
   }
-  async submit(id: string, actor: AuthUser) { return this.transition(id, ArticleStatus.DRAFT, ArticleStatus.REVIEW, actor); }
-  async publish(id: string, actor: AuthUser) { const article = await this.transition(id, ArticleStatus.REVIEW, ArticleStatus.PUBLISHED, actor); article.publishedAt ??= new Date(); await this.articles.save(article); return this.findAdmin(id); }
-  async offline(id: string, actor: AuthUser) { return this.transition(id, ArticleStatus.PUBLISHED, ArticleStatus.OFFLINE, actor); }
-  async returnToDraft(id: string, actor: AuthUser) { return this.transition(id, ArticleStatus.REVIEW, ArticleStatus.DRAFT, actor); }
-  async restore(id: string, actor: AuthUser) { return this.transition(id, ArticleStatus.OFFLINE, ArticleStatus.DRAFT, actor); }
+  async submit(id: string, actor: AuthUser) { const article = await this.transition(id, ArticleStatus.DRAFT, ArticleStatus.REVIEW, actor); await this.audit.record({ actor, action: AuditAction.CONTENT_SUBMIT, targetType: "article", targetId: id }); return article; }
+  async publish(id: string, actor: AuthUser) { const article = await this.transition(id, ArticleStatus.REVIEW, ArticleStatus.PUBLISHED, actor); article.publishedAt ??= new Date(); await this.articles.save(article); const saved = await this.findAdmin(id); await this.audit.record({ actor, action: AuditAction.CONTENT_PUBLISH, targetType: "article", targetId: id, metadata: { publishedAt: saved.publishedAt?.toISOString() } }); return saved; }
+  async offline(id: string, actor: AuthUser) { const article = await this.transition(id, ArticleStatus.PUBLISHED, ArticleStatus.OFFLINE, actor); await this.audit.record({ actor, action: AuditAction.CONTENT_OFFLINE, targetType: "article", targetId: id }); return article; }
+  async returnToDraft(id: string, actor: AuthUser) { const article = await this.transition(id, ArticleStatus.REVIEW, ArticleStatus.DRAFT, actor); await this.audit.record({ actor, action: AuditAction.CONTENT_RESTORE, targetType: "article", targetId: id, metadata: { from: ArticleStatus.REVIEW } }); return article; }
+  async restore(id: string, actor: AuthUser) { const article = await this.transition(id, ArticleStatus.OFFLINE, ArticleStatus.DRAFT, actor); await this.audit.record({ actor, action: AuditAction.CONTENT_RESTORE, targetType: "article", targetId: id, metadata: { from: ArticleStatus.OFFLINE } }); return article; }
 
   private async transition(id: string, from: ArticleStatus, to: ArticleStatus, actor: AuthUser) { const article = await this.findAdmin(id); if (article.status !== from) throw new BadRequestException(`当前状态不能执行此操作：${article.status}`); article.status = to; article.operator = { id: actor.id } as User; return this.articles.save(article); }
   private scalars(input: UpdateArticleDto) { const value: Partial<Article> = {}; if (input.slug !== undefined) value.slug = input.slug.trim(); if (input.title !== undefined) value.title = input.title.trim(); if (input.summary !== undefined) value.summary = input.summary.trim(); if (input.type !== undefined) value.type = input.type; if (input.originalUrl !== undefined) value.originalUrl = input.originalUrl; if (input.coverImageUrl !== undefined) value.coverImageUrl = input.coverImageUrl || null; if (input.publishedAt !== undefined) value.publishedAt = input.publishedAt ? new Date(input.publishedAt) : null; return Object.assign(value, this.policyFieldsForUpdate(input)); }

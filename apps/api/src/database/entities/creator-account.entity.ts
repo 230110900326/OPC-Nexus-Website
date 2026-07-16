@@ -1,0 +1,6 @@
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from "typeorm";
+import { Creator } from "./creator.entity";
+import { Video } from "./video.entity";
+export enum VideoPlatform { BILIBILI = "bilibili", YOUTUBE = "youtube", DOUYIN = "douyin" }
+@Entity({ name: "creator_accounts" }) @Unique("UQ_creator_accounts_platform_account", ["platform", "platformAccountId"])
+export class CreatorAccount { @PrimaryGeneratedColumn("uuid") id!: string; @ManyToOne(() => Creator, (creator) => creator.accounts, { onDelete: "CASCADE" }) @JoinColumn({ name: "creator_id" }) creator!: Creator; @Column({ type: "varchar", length: 20 }) platform!: VideoPlatform; @Column({ name: "platform_account_id", length: 160 }) platformAccountId!: string; @Column({ name: "display_name", length: 160 }) displayName!: string; @Column({ name: "profile_url", length: 1000 }) profileUrl!: string; @Column({ name: "is_enabled", default: false }) isEnabled!: boolean; @OneToMany(() => Video, (video) => video.creatorAccount) videos!: Video[]; @CreateDateColumn({ name: "created_at", type: "timestamptz" }) createdAt!: Date; @UpdateDateColumn({ name: "updated_at", type: "timestamptz" }) updatedAt!: Date; }

@@ -1,0 +1,7 @@
+import { BadRequestException } from "@nestjs/common";
+import { Repository } from "typeorm";
+import { CrawlAuthorizationStatus, CrawlFetchMethod, CrawlSource, CrawlSourceType } from "../database/entities/crawl-source.entity";
+import { CrawlJob } from "../database/entities/crawl-job.entity";
+import { CrawlLog } from "../database/entities/crawl-log.entity";
+import { CrawlService } from "./crawl.service";
+describe("Stage F - crawl source governance", () => { const sources = { create: jest.fn((value) => value), save: jest.fn(async (value) => value) } as unknown as Repository<CrawlSource>; const service = new CrawlService(sources, {} as Repository<CrawlJob>, {} as Repository<CrawlLog>); beforeEach(() => jest.clearAllMocks()); it("injects OPC priority keywords into a pending source", async () => { const result = await service.create({ name: "测试财经源", domain: "HTTPS://NEWS.TEST/path", type: CrawlSourceType.NEWS, fetchMethod: CrawlFetchMethod.HTML }); expect(result.domain).toBe("news.test"); expect(result.keywords).toEqual(expect.arrayContaining(["OPC 一人公司", "OPC财经", "OPC超级个体"])); expect(result.isEnabled).toBe(false); }); it("cannot enable a source before authorization", async () => { await expect(service.create({ name: "未授权", domain: "pending.test", type: CrawlSourceType.NEWS, fetchMethod: CrawlFetchMethod.HTML, authorizationStatus: CrawlAuthorizationStatus.PENDING, isEnabled: true })).rejects.toBeInstanceOf(BadRequestException); }); });

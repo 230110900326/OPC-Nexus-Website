@@ -7,5 +7,6 @@ import { Post } from "../database/entities/post.entity";
 import { ForumController } from "./forum.controller";
 import { ForumService } from "./forum.service";
 import { NotificationsModule } from "../notifications/notifications.module";
-@Module({ imports: [AuthModule, NotificationsModule, TypeOrmModule.forFeature([ForumSection, Post, Comment])], controllers: [ForumController], providers: [ForumService], exports: [ForumService] })
+import { RankingModule } from "../ranking/ranking.module";
+@Module({ imports: [AuthModule, NotificationsModule, RankingModule, TypeOrmModule.forFeature([ForumSection, Post, Comment])], controllers: [ForumController], providers: [ForumService], exports: [ForumService] })
 export class ForumModule {}

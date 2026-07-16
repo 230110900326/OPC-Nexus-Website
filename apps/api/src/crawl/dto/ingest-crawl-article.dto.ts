@@ -1,0 +1,3 @@
+import { IsDateString, IsEnum, IsOptional, IsString, IsUrl, MaxLength } from "class-validator";
+import { ArticleType } from "../../database/entities/article.entity";
+export class IngestCrawlArticleDto { @IsString() sourceId!: string; @IsString() @MaxLength(240) title!: string; @IsString() content!: string; @IsUrl({ require_tld: false }) originalUrl!: string; @IsOptional() @IsUrl({ require_tld: false }) canonicalUrl?: string; @IsOptional() @IsUrl({ require_tld: false }) coverImageUrl?: string; @IsOptional() @IsDateString() publishedAt?: string; @IsOptional() @IsEnum(ArticleType) type?: ArticleType; }

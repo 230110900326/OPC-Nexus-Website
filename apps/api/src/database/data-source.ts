@@ -8,6 +8,11 @@ import { ContentSchema1710000001000 } from "./migrations/1710000001000-content-s
 import { ContentCompletion1710000002000 } from "./migrations/1710000002000-content-completion";
 import { CommunitySchema1710000003000 } from "./migrations/1710000003000-community-schema";
 import { EventsNotifications1710000004000 } from "./migrations/1710000004000-events-notifications";
+import { CrawlSources1710000005000 } from "./migrations/1710000005000-crawl-sources";
+import { CrawlProcessing1710000006000 } from "./migrations/1710000006000-crawl-processing";
+import { VideoSchema1710000007000 } from "./migrations/1710000007000-video-schema";
+import { RankingSchema1710000008000 } from "./migrations/1710000008000-ranking-schema";
+import { OperationsSchema1710000009000 } from "./migrations/1710000009000-operations-schema";
 import { Category } from "./entities/category.entity";
 import { Tag } from "./entities/tag.entity";
 import { Article } from "./entities/article.entity";
@@ -23,6 +28,21 @@ import { Report } from "./entities/report.entity";
 import { Event } from "./entities/event.entity";
 import { EventRegistration } from "./entities/event-registration.entity";
 import { Notification } from "./entities/notification.entity";
+import { CrawlSource } from "./entities/crawl-source.entity";
+import { CrawlJob } from "./entities/crawl-job.entity";
+import { CrawlLog } from "./entities/crawl-log.entity";
+import { ContentKeyword } from "./entities/content-keyword.entity";
+import { CrawlDiscovery } from "./entities/crawl-discovery.entity";
+import { LinkCheck } from "./entities/link-check.entity";
+import { Creator } from "./entities/creator.entity";
+import { CreatorAccount } from "./entities/creator-account.entity";
+import { Video } from "./entities/video.entity";
+import { VideoSyncLog } from "./entities/video-sync-log.entity";
+import { ContentMetric } from "./entities/content-metric.entity";
+import { InteractionAudit } from "./entities/interaction-audit.entity";
+import { AuditLog } from "./entities/audit-log.entity";
+import { HomepageConfig } from "./entities/homepage-config.entity";
+import { RecommendationEvent } from "./entities/recommendation-event.entity";
 
 export default new DataSource({
   type: "postgres",
@@ -31,7 +51,7 @@ export default new DataSource({
   username: process.env.DB_USER ?? "opc",
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME ?? "opc_nexus",
-  entities: [User, Role, Permission, Category, Tag, Article, ArticleSource, ForumSection, Post, Comment, Like, Favorite, Follow, Report, ModerationLog, Event, EventRegistration, Notification],
-  migrations: [InitialAccountSchema1710000000000, ContentSchema1710000001000, ContentCompletion1710000002000, CommunitySchema1710000003000, EventsNotifications1710000004000],
+  entities: [User, Role, Permission, Category, Tag, Article, ArticleSource, ForumSection, Post, Comment, Like, Favorite, Follow, Report, ModerationLog, Event, EventRegistration, Notification, CrawlSource, CrawlJob, CrawlLog, ContentKeyword, CrawlDiscovery, LinkCheck, Creator, CreatorAccount, Video, VideoSyncLog, ContentMetric, InteractionAudit, HomepageConfig, RecommendationEvent, AuditLog],
+  migrations: [InitialAccountSchema1710000000000, ContentSchema1710000001000, ContentCompletion1710000002000, CommunitySchema1710000003000, EventsNotifications1710000004000, CrawlSources1710000005000, CrawlProcessing1710000006000, VideoSchema1710000007000, RankingSchema1710000008000, OperationsSchema1710000009000],
   synchronize: false,
 });

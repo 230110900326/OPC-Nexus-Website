@@ -9,6 +9,8 @@ import { User } from "../database/entities/user.entity";
 import { AuthUser } from "./auth-user.interface";
 import { LoginDto } from "./dto/login.dto";
 import { RegisterDto } from "./dto/register.dto";
+import { AuditService } from "../audit/audit.service";
+import { AuditAction } from "../database/entities/audit-log.entity";
 
 @Injectable()
 export class AuthService {
@@ -17,6 +19,7 @@ export class AuthService {
     @InjectRepository(Role) private readonly roles: Repository<Role>,
     private readonly jwtService: JwtService,
     private readonly config: ConfigService,
+    private readonly audit: AuditService,
   ) {}
 
   async register(input: RegisterDto) {
@@ -30,7 +33,9 @@ export class AuthService {
   async login(input: LoginDto) {
     const user = await this.users.createQueryBuilder("user").addSelect("user.passwordHash").leftJoinAndSelect("user.roles", "role").where("user.email = :email", { email: input.email.trim().toLowerCase() }).getOne();
     if (!user || !user.isActive || !(await bcrypt.compare(input.password, user.passwordHash))) throw new UnauthorizedException("邮箱或密码不正确");
-    return this.issueSession(user);
+    const session = await this.issueSession(user);
+    if (user.roles.some((role) => role.name !== SystemRole.USER)) await this.audit.record({ actor: user, action: AuditAction.ADMIN_LOGIN, targetType: "session", metadata: { roles: user.roles.map((role) => role.name) } });
+    return session;
   }
 
   async refresh(refreshToken: string) {

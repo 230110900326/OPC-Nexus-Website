@@ -1,0 +1,4 @@
+import { VideoPlatform } from "../database/entities/creator-account.entity";
+export type DiscoveredVideo = { platform: VideoPlatform; platformVideoId: string; title: string; coverUrl: string; originalUrl: string; publishedAt: string; durationSeconds: number; platformMetrics: Record<string, number>; platformDescription: string };
+export interface VideoDiscoveryAdapter { discover(accountId: string): Promise<DiscoveredVideo[]>; }
+export class LocalMockVideoAdapter implements VideoDiscoveryAdapter { async discover(accountId: string): Promise<DiscoveredVideo[]> { return [{ platform: VideoPlatform.BILIBILI, platformVideoId: `local-${accountId.slice(0, 8)}`, title: "OPC 一人公司：用现金流设计抵御经营波动", coverUrl: "https://example.invalid/local-cover.jpg", originalUrl: "https://example.invalid/local-video", publishedAt: "2026-07-16T08:00:00.000Z", durationSeconds: 842, platformMetrics: { views: 1200, likes: 86, comments: 19 }, platformDescription: "本地假数据，仅用于验证视频发现和审核流程。" }]; } }

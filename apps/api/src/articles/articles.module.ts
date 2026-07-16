@@ -9,5 +9,7 @@ import { ArticlesController } from "./articles.controller";
 import { ArticlesService } from "./articles.service";
 import { CatalogController } from "./catalog.controller";
 import { CatalogService } from "./catalog.service";
-@Module({ imports: [AuthModule, TypeOrmModule.forFeature([Article, ArticleSource, Category, Tag])], controllers: [ArticlesController, CatalogController], providers: [ArticlesService, CatalogService] })
+import { RankingModule } from "../ranking/ranking.module";
+import { AuditModule } from "../audit/audit.module";
+@Module({ imports: [AuthModule, AuditModule, RankingModule, TypeOrmModule.forFeature([Article, ArticleSource, Category, Tag])], controllers: [ArticlesController, CatalogController], providers: [ArticlesService, CatalogService] })
 export class ArticlesModule {}

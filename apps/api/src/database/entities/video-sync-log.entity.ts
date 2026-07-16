@@ -1,0 +1,3 @@
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { CreatorAccount } from "./creator-account.entity";
+@Entity({ name: "video_sync_logs" }) export class VideoSyncLog { @PrimaryGeneratedColumn("uuid") id!: string; @ManyToOne(() => CreatorAccount, { onDelete: "CASCADE" }) @JoinColumn({ name: "creator_account_id" }) creatorAccount!: CreatorAccount; @Column({ type: "varchar", length: 20 }) status!: "succeeded" | "failed"; @Column({ name: "discovered_count", type: "integer", default: 0 }) discoveredCount!: number; @Column({ name: "error_message", type: "text", nullable: true }) errorMessage!: string | null; @CreateDateColumn({ name: "created_at", type: "timestamptz" }) createdAt!: Date; }

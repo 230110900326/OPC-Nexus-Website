@@ -34,6 +34,26 @@ import { EventRegistration } from "./database/entities/event-registration.entity
 import { Notification } from "./database/entities/notification.entity";
 import { EventsModule } from "./events/events.module";
 import { NotificationsModule } from "./notifications/notifications.module";
+import { CrawlSource } from "./database/entities/crawl-source.entity";
+import { CrawlJob } from "./database/entities/crawl-job.entity";
+import { CrawlLog } from "./database/entities/crawl-log.entity";
+import { CrawlModule } from "./crawl/crawl.module";
+import { ContentKeyword } from "./database/entities/content-keyword.entity";
+import { CrawlDiscovery } from "./database/entities/crawl-discovery.entity";
+import { LinkCheck } from "./database/entities/link-check.entity";
+import { Creator } from "./database/entities/creator.entity";
+import { CreatorAccount } from "./database/entities/creator-account.entity";
+import { Video } from "./database/entities/video.entity";
+import { VideoSyncLog } from "./database/entities/video-sync-log.entity";
+import { VideosModule } from "./videos/videos.module";
+import { ContentMetric } from "./database/entities/content-metric.entity";
+import { InteractionAudit } from "./database/entities/interaction-audit.entity";
+import { RankingModule } from "./ranking/ranking.module";
+import { AuditLog } from "./database/entities/audit-log.entity";
+import { HomepageConfig } from "./database/entities/homepage-config.entity";
+import { RecommendationEvent } from "./database/entities/recommendation-event.entity";
+import { AuditModule } from "./audit/audit.module";
+import { OperationsModule } from "./operations/operations.module";
 
 @Module({
   imports: [
@@ -52,8 +72,9 @@ import { NotificationsModule } from "./notifications/notifications.module";
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
     TypeOrmModule.forRoot({
       type: "postgres", host: process.env.DB_HOST, port: Number(process.env.DB_PORT), username: process.env.DB_USER,
-      password: process.env.DB_PASSWORD, database: process.env.DB_NAME, entities: [User, Role, Permission, Category, Tag, Article, ArticleSource, ForumSection, Post, Comment, Like, Favorite, Follow, Report, ModerationLog, Event, EventRegistration, Notification], synchronize: false,
+      password: process.env.DB_PASSWORD, database: process.env.DB_NAME, entities: [User, Role, Permission, Category, Tag, Article, ArticleSource, ForumSection, Post, Comment, Like, Favorite, Follow, Report, ModerationLog, Event, EventRegistration, Notification, CrawlSource, CrawlJob, CrawlLog, ContentKeyword, CrawlDiscovery, LinkCheck, Creator, CreatorAccount, Video, VideoSyncLog, ContentMetric, InteractionAudit, HomepageConfig, RecommendationEvent, AuditLog], synchronize: false,
     }),
+    AuditModule,
     AuthModule,
     UsersModule,
     ArticlesModule,
@@ -64,6 +85,10 @@ import { NotificationsModule } from "./notifications/notifications.module";
     ModerationModule,
     NotificationsModule,
     EventsModule,
+    CrawlModule,
+    VideosModule,
+    RankingModule,
+    OperationsModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

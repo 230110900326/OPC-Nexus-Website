@@ -8,7 +8,8 @@ import { ArticlesService } from "./articles.service";
 
 describe("ArticlesService state flow", () => {
   const save = jest.fn(async (value) => value); const articles = { save } as unknown as Repository<Article>;
-  const service = new ArticlesService(articles, {} as Repository<Category>, {} as Repository<Tag>);
+  const audit = { record: jest.fn() };
+  const service = new ArticlesService(articles, {} as Repository<Category>, {} as Repository<Tag>, { recordDelta: jest.fn() } as never, audit as never);
   const actor = { id: "8bb2042a-2a57-4d64-9695-05d53a6aa111", email: "editor@example.com", roles: [SystemRole.OPERATOR] };
   const article = { id: "90c5bb19-f037-448f-91df-598d1c798222", status: ArticleStatus.DRAFT, type: ArticleType.NEWS, publishedAt: null } as Article;
   beforeEach(() => { jest.clearAllMocks(); article.status = ArticleStatus.DRAFT; article.publishedAt = null; jest.spyOn(service, "findAdmin").mockResolvedValue(article); });

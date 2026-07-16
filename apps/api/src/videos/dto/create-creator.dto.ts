@@ -1,0 +1,3 @@
+import { IsArray, IsBoolean, IsEnum, IsInt, IsOptional, IsString, IsUrl, Max, MaxLength, Min } from "class-validator";
+import { AuthorizationStatus } from "../../database/entities/creator.entity";
+export class CreateCreatorDto { @IsString() @MaxLength(120) name!: string; @IsOptional() @IsUrl({ require_tld: false }) avatarUrl?: string; @IsOptional() @IsArray() @IsString({ each: true }) industries?: string[]; @IsOptional() @IsInt() @Min(1) @Max(5) trustLevel?: number; @IsOptional() @IsEnum(AuthorizationStatus) authorizationStatus?: AuthorizationStatus; @IsOptional() @IsBoolean() isEnabled?: boolean; }

@@ -10,5 +10,6 @@ import { User } from "../database/entities/user.entity";
 import { ModerationController } from "./moderation.controller";
 import { ModerationService } from "./moderation.service";
 import { NotificationsModule } from "../notifications/notifications.module";
-@Module({ imports: [AuthModule, NotificationsModule, TypeOrmModule.forFeature([Report, ModerationLog, Post, Comment, Article, User])], controllers: [ModerationController], providers: [ModerationService] })
+import { AuditModule } from "../audit/audit.module";
+@Module({ imports: [AuthModule, AuditModule, NotificationsModule, TypeOrmModule.forFeature([Report, ModerationLog, Post, Comment, Article, User])], controllers: [ModerationController], providers: [ModerationService] })
 export class ModerationModule {}

@@ -1,0 +1,2 @@
+import { HealthController } from "./health.controller";
+describe("Stage A - project foundation", () => { it("reports a healthy API using the unified envelope", () => { const result = new HealthController().check(); expect(result.success).toBe(true); expect(result.data).toEqual(expect.objectContaining({ service: "opc-api", status: "ok" })); expect(new Date(result.data.timestamp).toString()).not.toBe("Invalid Date"); }); });

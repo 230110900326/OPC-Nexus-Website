@@ -1,0 +1,7 @@
+import { authorizedRequest } from "./auth";
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000";
+type Envelope<T> = { success: boolean; data?: T; error?: { message?: string } };
+export type FeedItem = { id: string; contentType: "article" | "policy" | "video" | "post"; title: string; excerpt: string; url: string; coverImageUrl: string | null; source: string; industry: string | null; publishedAt: string; heat: number; reason: string; metrics: { likes: number; comments: number; favorites: number; shares: number; reads: number }; rank?: number; previousRank?: number | null; updatedAt?: string };
+async function request<T>(path: string) { const response = await fetch(`${apiBaseUrl}${path}`, { cache: "no-store" }); const body = await response.json() as Envelope<T>; if (!response.ok || !body.success || body.data === undefined) throw new Error(body.error?.message ?? "内容暂时无法加载"); return body.data; }
+export const getFeed = (mode: string, scope = "all", industry = "") => mode === "following" ? authorizedRequest<FeedItem[]>(`/feeds/following?scope=${scope}&industry=${encodeURIComponent(industry)}`) : request<FeedItem[]>(`/feeds?mode=${mode}&scope=${scope}&industry=${encodeURIComponent(industry)}`);
+export const getRankings = (scope: string, window: string, industry = "") => request<FeedItem[]>(`/rankings?scope=${scope}&window=${window}&industry=${encodeURIComponent(industry)}`);

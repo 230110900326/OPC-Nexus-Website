@@ -8,7 +8,10 @@ import { Follow } from "../database/entities/follow.entity";
 import { Like } from "../database/entities/like.entity";
 import { Post } from "../database/entities/post.entity";
 import { User } from "../database/entities/user.entity";
+import { Video } from "../database/entities/video.entity";
+import { Creator } from "../database/entities/creator.entity";
+import { RankingModule } from "../ranking/ranking.module";
 import { InteractionsController } from "./interactions.controller";
 import { InteractionsService } from "./interactions.service";
-@Module({ imports: [AuthModule, TypeOrmModule.forFeature([Like, Favorite, Follow, Article, Post, Comment, User])], controllers: [InteractionsController], providers: [InteractionsService], exports: [InteractionsService] })
+@Module({ imports: [AuthModule, RankingModule, TypeOrmModule.forFeature([Like, Favorite, Follow, Article, Post, Comment, User, Video, Creator])], controllers: [InteractionsController], providers: [InteractionsService], exports: [InteractionsService] })
 export class InteractionsModule {}
