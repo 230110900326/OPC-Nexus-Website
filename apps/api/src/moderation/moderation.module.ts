@@ -11,5 +11,6 @@ import { ModerationController } from "./moderation.controller";
 import { ModerationService } from "./moderation.service";
 import { NotificationsModule } from "../notifications/notifications.module";
 import { AuditModule } from "../audit/audit.module";
-@Module({ imports: [AuthModule, AuditModule, NotificationsModule, TypeOrmModule.forFeature([Report, ModerationLog, Post, Comment, Article, User])], controllers: [ModerationController], providers: [ModerationService] })
+import { OpcDemand } from "../database/entities/opc-demand.entity";
+@Module({ imports: [AuthModule, AuditModule, NotificationsModule, TypeOrmModule.forFeature([Report, ModerationLog, Post, Comment, Article, User, OpcDemand])], controllers: [ModerationController], providers: [ModerationService] })
 export class ModerationModule {}

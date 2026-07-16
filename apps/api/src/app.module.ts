@@ -54,6 +54,10 @@ import { HomepageConfig } from "./database/entities/homepage-config.entity";
 import { RecommendationEvent } from "./database/entities/recommendation-event.entity";
 import { AuditModule } from "./audit/audit.module";
 import { OperationsModule } from "./operations/operations.module";
+import { DemandBoardConfig } from "./database/entities/demand-board-config.entity";
+import { OpcDemandConnect } from "./database/entities/opc-demand-connect.entity";
+import { OpcDemand } from "./database/entities/opc-demand.entity";
+import { DemandsModule } from "./demands/demands.module";
 
 @Module({
   imports: [
@@ -65,6 +69,7 @@ import { OperationsModule } from "./operations/operations.module";
         DB_NAME: Joi.string().default("opc_nexus"), DB_USER: Joi.string().default("opc"), DB_PASSWORD: Joi.string().min(1).required(),
         JWT_ACCESS_SECRET: Joi.string().min(32).required(), JWT_REFRESH_SECRET: Joi.string().min(32).required(),
         JWT_ACCESS_TTL: Joi.string().default("15m"), JWT_REFRESH_TTL: Joi.string().default("7d"),
+        COOKIE_SECURE: Joi.boolean().optional(), REFRESH_COOKIE_PATH: Joi.string().pattern(/^\/.*/).default("/"),
         API_PUBLIC_URL: Joi.string().uri().default("http://localhost:4000"), STORAGE_DRIVER: Joi.string().valid("local", "s3").default("local"), UPLOAD_DIR: Joi.string().default("uploads"),
         S3_ENDPOINT: Joi.string().uri().when("STORAGE_DRIVER", { is: "s3", then: Joi.required() }), S3_REGION: Joi.string().default("auto"), S3_BUCKET: Joi.string().when("STORAGE_DRIVER", { is: "s3", then: Joi.required() }), S3_ACCESS_KEY_ID: Joi.string().when("STORAGE_DRIVER", { is: "s3", then: Joi.required() }), S3_SECRET_ACCESS_KEY: Joi.string().when("STORAGE_DRIVER", { is: "s3", then: Joi.required() }), S3_PUBLIC_BASE_URL: Joi.string().uri().optional(),
       }),
@@ -72,7 +77,7 @@ import { OperationsModule } from "./operations/operations.module";
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
     TypeOrmModule.forRoot({
       type: "postgres", host: process.env.DB_HOST, port: Number(process.env.DB_PORT), username: process.env.DB_USER,
-      password: process.env.DB_PASSWORD, database: process.env.DB_NAME, entities: [User, Role, Permission, Category, Tag, Article, ArticleSource, ForumSection, Post, Comment, Like, Favorite, Follow, Report, ModerationLog, Event, EventRegistration, Notification, CrawlSource, CrawlJob, CrawlLog, ContentKeyword, CrawlDiscovery, LinkCheck, Creator, CreatorAccount, Video, VideoSyncLog, ContentMetric, InteractionAudit, HomepageConfig, RecommendationEvent, AuditLog], synchronize: false,
+      password: process.env.DB_PASSWORD, database: process.env.DB_NAME, entities: [User, Role, Permission, Category, Tag, Article, ArticleSource, ForumSection, Post, Comment, Like, Favorite, Follow, Report, ModerationLog, Event, EventRegistration, Notification, CrawlSource, CrawlJob, CrawlLog, ContentKeyword, CrawlDiscovery, LinkCheck, Creator, CreatorAccount, Video, VideoSyncLog, ContentMetric, InteractionAudit, HomepageConfig, RecommendationEvent, AuditLog, OpcDemand, OpcDemandConnect, DemandBoardConfig], synchronize: false,
     }),
     AuditModule,
     AuthModule,
@@ -89,6 +94,7 @@ import { OperationsModule } from "./operations/operations.module";
     VideosModule,
     RankingModule,
     OperationsModule,
+    DemandsModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

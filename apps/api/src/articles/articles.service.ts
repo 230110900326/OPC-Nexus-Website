@@ -32,9 +32,9 @@ export class ArticlesService {
     if (input.category) query.andWhere("category.slug = :category", { category: input.category });
     if (input.source) query.andWhere("source.name ILIKE :source", { source: `%${input.source}%` });
     if (input.q) query.andWhere(new Brackets((where) => where.where("article.title ILIKE :q", { q: `%${input.q}%` }).orWhere("article.summary ILIKE :q", { q: `%${input.q}%` })));
-    if (input.sort === "hot") query.orderBy("article.heat_score", "DESC");
-    else if (input.sort === "recommended") query.orderBy("(article.heat_score + GREATEST(0, 168 - EXTRACT(EPOCH FROM (NOW() - article.published_at)) / 3600))", "DESC");
-    else query.orderBy(includeUnpublished ? "article.updated_at" : "article.published_at", "DESC");
+    if (input.sort === "hot") query.orderBy("article.heatScore", "DESC");
+    else if (input.sort === "recommended") query.addSelect("(article.heat_score + GREATEST(0, 168 - EXTRACT(EPOCH FROM (NOW() - article.published_at)) / 3600))", "recommendation_score").orderBy("recommendation_score", "DESC");
+    else query.orderBy(includeUnpublished ? "article.updatedAt" : "article.publishedAt", "DESC");
     query.addOrderBy("article.id", "DESC").skip((input.page - 1) * input.limit).take(input.limit);
     const [items, total] = await query.getManyAndCount();
     return { items, pagination: { page: input.page, limit: input.limit, total, totalPages: Math.ceil(total / input.limit) } };
@@ -43,7 +43,7 @@ export class ArticlesService {
   async findPublic(slug: string) {
     const article = await this.findOne(slug, false);
     await this.ranking.recordDelta(article.type === "policy" ? MetricContentType.POLICY : MetricContentType.ARTICLE, article.id, { readCount: 1 });
-    const related = await this.articles.createQueryBuilder("article").leftJoinAndSelect("article.category", "category").leftJoinAndSelect("article.tags", "tag").leftJoinAndSelect("article.sources", "source").where("article.status = :status AND article.published_at <= NOW() AND article.id != :id", { status: ArticleStatus.PUBLISHED, id: article.id }).andWhere(article.category ? "article.category_id = :categoryId" : "article.type = :type", article.category ? { categoryId: article.category.id } : { type: article.type }).orderBy("article.heat_score", "DESC").addOrderBy("article.published_at", "DESC").take(3).getMany();
+    const related = await this.articles.createQueryBuilder("article").leftJoinAndSelect("article.category", "category").leftJoinAndSelect("article.tags", "tag").leftJoinAndSelect("article.sources", "source").where("article.status = :status AND article.published_at <= NOW() AND article.id != :id", { status: ArticleStatus.PUBLISHED, id: article.id }).andWhere(article.category ? "article.category_id = :categoryId" : "article.type = :type", article.category ? { categoryId: article.category.id } : { type: article.type }).orderBy("article.heatScore", "DESC").addOrderBy("article.publishedAt", "DESC").take(3).getMany();
     return Object.assign(article, { related });
   }
   async findAdmin(id: string) { const article = await this.articles.findOne({ where: { id }, relations: adminRelations }); if (!article) throw new NotFoundException("文章不存在"); return article; }

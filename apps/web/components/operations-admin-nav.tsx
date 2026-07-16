@@ -7,6 +7,7 @@ const links = [
   { href: "/admin/audit-logs", label: "操作日志", key: "audit" },
   { href: "/admin/articles", label: "内容", key: "articles" },
   { href: "/admin/events", label: "活动", key: "events" },
+  { href: "/admin/demands", label: "需求", key: "demands" },
   { href: "/admin/moderation", label: "审核", key: "moderation" },
 ];
 

@@ -38,16 +38,18 @@ export class AuthService {
     return session;
   }
 
-  async refresh(refreshToken: string) {
+  async refresh(refreshToken?: string) {
+    if (!refreshToken) throw this.invalidSession();
+    let payload: AuthUser & { type: string };
     try {
-      const payload = await this.jwtService.verifyAsync<AuthUser & { type: string }>(refreshToken, { secret: this.config.getOrThrow<string>("JWT_REFRESH_SECRET") });
-      if (payload.type !== "refresh") throw new Error("Unexpected token");
-      const user = await this.users.createQueryBuilder("user").addSelect("user.refreshTokenHash").leftJoinAndSelect("user.roles", "role").where("user.id = :id", { id: payload.id }).getOne();
-      if (!user?.isActive || !user.refreshTokenHash || !(await bcrypt.compare(refreshToken, user.refreshTokenHash))) throw new Error("Invalid token");
-      return this.issueSession(user);
+      payload = await this.jwtService.verifyAsync<AuthUser & { type: string }>(refreshToken, { secret: this.config.getOrThrow<string>("JWT_REFRESH_SECRET") });
     } catch {
-      throw new UnauthorizedException("登录状态已失效，请重新登录");
+      throw this.invalidSession();
     }
+    if (payload.type !== "refresh") throw this.invalidSession();
+    const user = await this.users.createQueryBuilder("user").addSelect("user.refreshTokenHash").leftJoinAndSelect("user.roles", "role").where("user.id = :id", { id: payload.id }).getOne();
+    if (!user?.isActive || !user.refreshTokenHash || !(await bcrypt.compare(refreshToken, user.refreshTokenHash))) throw this.invalidSession();
+    return this.issueSession(user);
   }
 
   async logout(userId: string) { await this.users.update(userId, { refreshTokenHash: null }); }
@@ -62,6 +64,8 @@ export class AuthService {
     await this.users.update(user.id, { refreshTokenHash: await bcrypt.hash(refreshToken, 12) });
     return { accessToken, refreshToken, user: this.publicUser(user) };
   }
+
+  private invalidSession() { return new UnauthorizedException("登录状态已失效，请重新登录"); }
 
   public publicUser(user: User) {
     const { passwordHash: _, refreshTokenHash: __, banReason: ___, bannedAt: ____, ...safeUser } = user;

@@ -43,6 +43,10 @@ import { InteractionAudit } from "./entities/interaction-audit.entity";
 import { AuditLog } from "./entities/audit-log.entity";
 import { HomepageConfig } from "./entities/homepage-config.entity";
 import { RecommendationEvent } from "./entities/recommendation-event.entity";
+import { DemandBoardConfig } from "./entities/demand-board-config.entity";
+import { OpcDemandConnect } from "./entities/opc-demand-connect.entity";
+import { OpcDemand } from "./entities/opc-demand.entity";
+import { DemandMarketplace1710000010000 } from "./migrations/1710000010000-demand-marketplace";
 
 export default new DataSource({
   type: "postgres",
@@ -51,7 +55,7 @@ export default new DataSource({
   username: process.env.DB_USER ?? "opc",
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME ?? "opc_nexus",
-  entities: [User, Role, Permission, Category, Tag, Article, ArticleSource, ForumSection, Post, Comment, Like, Favorite, Follow, Report, ModerationLog, Event, EventRegistration, Notification, CrawlSource, CrawlJob, CrawlLog, ContentKeyword, CrawlDiscovery, LinkCheck, Creator, CreatorAccount, Video, VideoSyncLog, ContentMetric, InteractionAudit, HomepageConfig, RecommendationEvent, AuditLog],
-  migrations: [InitialAccountSchema1710000000000, ContentSchema1710000001000, ContentCompletion1710000002000, CommunitySchema1710000003000, EventsNotifications1710000004000, CrawlSources1710000005000, CrawlProcessing1710000006000, VideoSchema1710000007000, RankingSchema1710000008000, OperationsSchema1710000009000],
+  entities: [User, Role, Permission, Category, Tag, Article, ArticleSource, ForumSection, Post, Comment, Like, Favorite, Follow, Report, ModerationLog, Event, EventRegistration, Notification, CrawlSource, CrawlJob, CrawlLog, ContentKeyword, CrawlDiscovery, LinkCheck, Creator, CreatorAccount, Video, VideoSyncLog, ContentMetric, InteractionAudit, HomepageConfig, RecommendationEvent, AuditLog, OpcDemand, OpcDemandConnect, DemandBoardConfig],
+  migrations: [InitialAccountSchema1710000000000, ContentSchema1710000001000, ContentCompletion1710000002000, CommunitySchema1710000003000, EventsNotifications1710000004000, CrawlSources1710000005000, CrawlProcessing1710000006000, VideoSchema1710000007000, RankingSchema1710000008000, OperationsSchema1710000009000, DemandMarketplace1710000010000],
   synchronize: false,
 });

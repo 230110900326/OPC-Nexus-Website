@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { FeedItem, getFeed } from "../lib/ranking";
 
 const modes = [{ value: "recommended", label: "为你推荐" }, { value: "latest", label: "最新" }, { value: "hot", label: "热度" }, { value: "following", label: "关注" }];
-const labels = { article: "资讯", policy: "政策", video: "视频", post: "社区" };
+const labels: Record<FeedItem["contentType"], string> = { article: "资讯", policy: "政策", video: "视频", post: "社区", demand: "需求" };
 export function DiscoveryFeed() {
   const [mode, setMode] = useState("recommended"); const [items, setItems] = useState<FeedItem[]>([]); const [industry, setIndustry] = useState(""); const [error, setError] = useState(""); const [loading, setLoading] = useState(true);
   useEffect(() => { setLoading(true); setError(""); getFeed(mode, "all", industry).then(setItems).catch((reason) => setError(reason instanceof Error ? reason.message : "信息流加载失败")).finally(() => setLoading(false)); }, [mode, industry]);

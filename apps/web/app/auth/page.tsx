@@ -15,7 +15,12 @@ export default function AuthPage() {
     event.preventDefault(); setError(""); setPending(true);
     const fields = new FormData(event.currentTarget);
     const input = Object.fromEntries(fields.entries()) as Record<string, string>;
-    try { await signIn(mode, input); router.replace("/account"); }
+    try {
+      await signIn(mode, input);
+      const requested = new URLSearchParams(window.location.search).get("next");
+      const destination = requested?.startsWith("/") && !requested.startsWith("//") && !requested.includes("\\") ? requested : "/account";
+      router.replace(destination);
+    }
     catch (reason) { setError(reason instanceof Error ? reason.message : "暂时无法完成操作"); }
     finally { setPending(false); }
   }

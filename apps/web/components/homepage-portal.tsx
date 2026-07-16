@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { FeedItem } from "../lib/ranking";
 import { HomepageCreator, HomepageData, HomepageEvent, HomepageModule, HomepagePublicConfig, getHomepage, trackRecommendation } from "../lib/operations";
 
-const contentLabels: Record<FeedItem["contentType"], string> = { article: "资讯", policy: "政策", video: "视频", post: "社区" };
+const contentLabels: Record<FeedItem["contentType"], string> = { article: "资讯", policy: "政策", video: "视频", post: "社区", demand: "需求" };
 
 export function HomepagePortal() {
   const [data, setData] = useState<HomepageData | null>(null);

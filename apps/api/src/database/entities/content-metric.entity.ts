@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
 
-export enum MetricContentType { ARTICLE = "article", POLICY = "policy", VIDEO = "video", POST = "post" }
+export enum MetricContentType { ARTICLE = "article", POLICY = "policy", VIDEO = "video", POST = "post", DEMAND = "demand" }
 export enum MetricSource { INTERNAL = "internal", BILIBILI = "bilibili", YOUTUBE = "youtube", DOUYIN = "douyin", IMPORT = "import" }
 
 @Entity({ name: "content_metrics" })

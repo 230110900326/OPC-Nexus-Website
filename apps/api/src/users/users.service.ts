@@ -9,6 +9,7 @@ import { UpdateProfileDto } from "./dto/update-profile.dto";
 export class UsersService {
   constructor(@InjectRepository(User) private readonly users: Repository<User>, private readonly auth: AuthService) {}
   async getMe(id: string) { return this.auth.publicUser(await this.users.findOneOrFail({ where: { id }, relations: { roles: true } })); }
+  async publicProfile(id: string) { const user = await this.users.findOne({ where: { id, isActive: true }, relations: { roles: true } }); if (!user) throw new NotFoundException("用户不存在或已停用"); return { id: user.id, displayName: user.displayName, avatarUrl: user.avatarUrl, bio: user.bio, industry: user.industry, company: user.company, jobTitle: user.jobTitle, roles: user.roles.map((role) => role.name), createdAt: user.createdAt }; }
   async updateMe(id: string, input: UpdateProfileDto) {
     const user = await this.users.findOne({ where: { id }, relations: { roles: true } });
     if (!user) throw new NotFoundException("用户不存在");

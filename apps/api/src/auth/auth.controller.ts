@@ -1,7 +1,7 @@
 import { Body, Controller, Get, HttpCode, Post, Req, Res, UseGuards } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Throttle } from "@nestjs/throttler";
-import { Response, Request } from "express";
+import { CookieOptions, Response, Request } from "express";
 import { AuthenticatedUser } from "./authenticated-user.decorator";
 import { AuthService } from "./auth.service";
 import { AuthUser } from "./auth-user.interface";
@@ -53,7 +53,9 @@ export class AuthController {
     return { success: true, data: { accessToken: session.accessToken, user: session.user } };
   }
 
-  private cookieOptions() {
-    return { httpOnly: true, sameSite: "lax" as const, secure: this.config.get<string>("NODE_ENV") === "production", path: "/auth" };
+  private cookieOptions(): CookieOptions {
+    const configuredSecure = this.config.get<boolean | string>("COOKIE_SECURE");
+    const secure = configuredSecure === undefined ? this.config.get<string>("NODE_ENV") === "production" : configuredSecure === true || configuredSecure === "true";
+    return { httpOnly: true, sameSite: "lax", secure, path: this.config.get<string>("REFRESH_COOKIE_PATH")?.trim() || "/" };
   }
 }

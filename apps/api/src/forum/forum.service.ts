@@ -22,13 +22,13 @@ export type PublicComment = { id: string; body: string; status: CommentStatus; c
 @Injectable()
 export class ForumService {
   constructor(@InjectRepository(ForumSection) private readonly sections: Repository<ForumSection>, @InjectRepository(Post) private readonly posts: Repository<Post>, @InjectRepository(Comment) private readonly comments: Repository<Comment>, private readonly notifications: NotificationsService, private readonly ranking: RankingService) {}
-  async listSections() { const values = await this.sections.createQueryBuilder("section").loadRelationCountAndMap("section.postCount", "section.posts", "post", (query) => query.where("post.status = :status AND post.deleted_at IS NULL", { status: PostStatus.PUBLISHED })).where("section.is_active = true").orderBy("section.sort_order", "ASC").getMany(); return values; }
+  async listSections() { const values = await this.sections.createQueryBuilder("section").loadRelationCountAndMap("section.postCount", "section.posts", "post", (query) => query.where("post.status = :status AND post.deleted_at IS NULL", { status: PostStatus.PUBLISHED })).where("section.is_active = true").orderBy("section.sortOrder", "ASC").getMany(); return values; }
   async listPosts(input: ListPostsDto, userId?: string) {
     const query = this.posts.createQueryBuilder("post").leftJoinAndSelect("post.section", "section").leftJoinAndSelect("post.author", "author").where(userId ? "post.author_id = :userId" : "post.status = :status", userId ? { userId } : { status: PostStatus.PUBLISHED });
     if (input.section) query.andWhere("(section.slug = :section OR section.id::text = :section)", { section: input.section });
     if (input.q) query.andWhere(new Brackets((where) => where.where("post.search_document @@ websearch_to_tsquery('simple', :q)", { q: input.q }).orWhere("post.title ILIKE :like OR post.body ILIKE :like", { like: `%${input.q}%` })));
     if (input.sort === "featured") query.andWhere("post.is_featured = true");
-    query.orderBy("post.is_pinned", "DESC").addOrderBy(input.sort === "hot" ? "post.heat_score" : "post.created_at", "DESC").skip((input.page - 1) * input.limit).take(input.limit);
+    query.orderBy("post.isPinned", "DESC").addOrderBy(input.sort === "hot" ? "post.heatScore" : "post.createdAt", "DESC").skip((input.page - 1) * input.limit).take(input.limit);
     const [items, total] = await query.getManyAndCount();
     return { items: items.map((post) => ({ ...this.publicPost(post), body: post.body.slice(0, 360) })), pagination: { page: input.page, limit: input.limit, total, totalPages: Math.ceil(total / input.limit) } };
   }

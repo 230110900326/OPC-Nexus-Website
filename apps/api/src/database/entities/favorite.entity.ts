@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
 import { User } from "./user.entity";
-export enum FavoriteTargetType { ARTICLE = "article", VIDEO = "video", POST = "post" }
+export enum FavoriteTargetType { ARTICLE = "article", VIDEO = "video", POST = "post", DEMAND = "demand" }
 @Entity({ name: "favorites" }) @Unique("UQ_favorites_user_target", ["user", "targetType", "targetId"])
 export class Favorite {
   @PrimaryGeneratedColumn("uuid") id!: string;

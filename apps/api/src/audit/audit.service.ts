@@ -31,7 +31,7 @@ export class AuditService {
     if (input.action) query.andWhere("audit.action = :action", { action: input.action });
     if (input.from) query.andWhere("audit.created_at >= :from", { from: startDate(input.from) });
     if (input.to) query.andWhere("audit.created_at <= :to", { to: endDate(input.to) });
-    const [items, total] = await query.orderBy("audit.created_at", "DESC").addOrderBy("audit.id", "DESC").skip((input.page - 1) * input.limit).take(input.limit).getManyAndCount();
+    const [items, total] = await query.orderBy("audit.createdAt", "DESC").addOrderBy("audit.id", "DESC").skip((input.page - 1) * input.limit).take(input.limit).getManyAndCount();
     return { items, pagination: { page: input.page, limit: input.limit, total, totalPages: Math.ceil(total / input.limit) } };
   }
 }

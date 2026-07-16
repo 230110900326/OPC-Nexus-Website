@@ -15,6 +15,15 @@ export enum AuditAction {
   HOMEPAGE_CONFIG_CREATE = "homepage.config_create",
   HOMEPAGE_CONFIG_UPDATE = "homepage.config_update",
   HOMEPAGE_CONFIG_DELETE = "homepage.config_delete",
+  DEMAND_CREATE = "demand.create",
+  DEMAND_EDIT = "demand.edit",
+  DEMAND_SUBMIT = "demand.submit",
+  DEMAND_REVIEW = "demand.review",
+  DEMAND_STATUS_CHANGE = "demand.status_change",
+  DEMAND_PIN = "demand.pin",
+  DEMAND_CONNECT = "demand.connect",
+  DEMAND_CONNECT_STATUS = "demand.connect_status",
+  DEMAND_CONFIG_UPDATE = "demand.config_update",
 }
 
 @Entity({ name: "audit_logs" })

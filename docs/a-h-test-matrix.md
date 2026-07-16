@@ -1,4 +1,4 @@
-# A–H 测试矩阵
+# A–J 测试矩阵
 
 | 阶段 | 单元测试重点 | 主要测试文件 |
 | --- | --- | --- |
@@ -10,5 +10,7 @@
 | F 资讯采集 | 来源授权、关键词、解析、发现、政策适配、去重分类 | `crawl.service.spec.ts`、crawler pytest |
 | G 视频 | 字幕授权状态机、合法字幕概要 | `videos.service.spec.ts` |
 | H 推荐热榜 | 时间衰减、半衰期、百分位、防刷、迁移 | `heat-score.spec.ts`、`interaction-risk.service.spec.ts`、`ranking-migration.spec.ts` |
+| I 首页运营 | 首页配置、曝光点击、运营指标、审计留痕和查询排序 | `homepage*.spec.ts`、`audit*.spec.ts`、`query-ordering.regression.spec.ts` |
+| J 需求广场 | 发布限额、联系方式、截止时间、审核状态机、对接防刷、迁移和真实撮合链路 | `demands/*.spec.ts`、`demand-marketplace.spec.ts`、`a-j-demand-marketplace.integration.spec.ts` |
 
-跨阶段集成测试：`integration/a-h-platform.integration.spec.ts`，覆盖健康检查、权限、F 分类后的 C 文章、D 帖子、G 视频、H 统一排序和 E 通知落库。
+跨阶段集成测试：`integration/a-h-platform.integration.spec.ts` 覆盖健康检查、权限、F 分类后的 C 文章、D 帖子、G 视频、H 统一排序和 E 通知落库；`integration/a-j-demand-marketplace.integration.spec.ts` 覆盖 J 阶段从创建草稿、提交审核、运营通过到协作者发起对接、通知和审计落库的完整链路。

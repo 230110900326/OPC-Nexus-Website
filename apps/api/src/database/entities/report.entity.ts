@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "./user.entity";
-export enum ReportTargetType { POST = "post", COMMENT = "comment", ARTICLE = "article", USER = "user" }
+export enum ReportTargetType { POST = "post", COMMENT = "comment", ARTICLE = "article", USER = "user", DEMAND = "demand" }
 export enum ReportStatus { PENDING = "pending", RESOLVED = "resolved", REJECTED = "rejected" }
 @Entity({ name: "reports" })
 export class Report {
