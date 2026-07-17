@@ -20,9 +20,8 @@ const footerGroups = [
     links: [
       ["关于我们", "/about"],
       ["常见问题 FAQ", "/faq"],
-      ["联系方式", "/about#contact"],
+      ["联系方式", "/contact"],
       ["全站搜索", "/search"],
-      ["登录 / 注册", "/auth"],
     ],
   },
   {
