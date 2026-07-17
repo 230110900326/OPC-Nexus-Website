@@ -1,10 +1,12 @@
 # Dependencies and build outputs
 node_modules/
 .codex-tmp/
+.vercel/
 .next/
 dist/
 coverage/
 uploads/
+*.tsbuildinfo
 
 # Python
 __pycache__/
