@@ -1,3 +1,61 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { BrandLogo } from "./brand-logo";
-export function SiteHeader() { return <header className="site-header"><BrandLogo /><nav aria-label="主导航"><Link href="/discover">推荐</Link><Link href="/rankings">热榜</Link><Link href="/news">资讯</Link><Link href="/policies">政策</Link><Link href="/videos">视频</Link><Link href="/community">社区</Link><Link href="/demands">需求广场</Link><Link href="/events">活动</Link></nav><div className="header-actions"><Link href="/admin/dashboard">运营台</Link><Link href="/notifications">通知</Link><Link className="login-button" href="/auth">登录 / 注册</Link></div></header>; }
+
+const navigation = [
+  { href: "/", label: "首页" },
+  { href: "/discover", label: "推荐", compact: true },
+  { href: "/rankings", label: "热榜", compact: true },
+  { href: "/news", label: "资讯" },
+  { href: "/policies", label: "政策" },
+  { href: "/videos", label: "视频", compact: true },
+  { href: "/community", label: "社区" },
+  { href: "/demands", label: "需求广场" },
+  { href: "/events", label: "活动" },
+];
+
+function isCurrent(pathname: string, href: string) {
+  return href === "/" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
+}
+
+export function SiteHeader() {
+  const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  return (
+    <header className="site-header" id="top">
+      <BrandLogo />
+      <nav className="primary-navigation" aria-label="主导航">
+        {navigation.map((item) => {
+          const current = isCurrent(pathname, item.href);
+          return <Link className={current ? "active" : undefined} data-compact={item.compact ? "hide" : undefined} href={item.href} aria-current={current ? "page" : undefined} key={item.href}>{item.label}</Link>;
+        })}
+      </nav>
+      <div className="header-actions">
+        <Link href="/admin/dashboard">运营台</Link>
+        <Link href="/notifications">通知</Link>
+        <Link className="login-button" href="/auth">登录 / 注册</Link>
+      </div>
+      <button className="mobile-navigation-toggle" type="button" aria-expanded={menuOpen} aria-controls="mobile-navigation" onClick={() => setMenuOpen((open) => !open)}>
+        <span>{menuOpen ? "关闭" : "菜单"}</span>
+        <i aria-hidden="true" />
+      </button>
+      <div className="mobile-navigation-panel" id="mobile-navigation" hidden={!menuOpen}>
+        <nav aria-label="移动端主导航">
+          {navigation.map((item) => {
+            const current = isCurrent(pathname, item.href);
+            return <Link className={current ? "active" : undefined} href={item.href} aria-current={current ? "page" : undefined} onClick={() => setMenuOpen(false)} key={item.href}>{item.label}</Link>;
+          })}
+        </nav>
+        <div className="mobile-navigation-actions">
+          <Link href="/notifications" onClick={() => setMenuOpen(false)}>通知</Link>
+          <Link href="/admin/dashboard" onClick={() => setMenuOpen(false)}>运营台</Link>
+          <Link href="/auth" onClick={() => setMenuOpen(false)}>登录 / 注册 <span>→</span></Link>
+        </div>
+      </div>
+    </header>
+  );
+}
