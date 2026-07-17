@@ -105,7 +105,7 @@ export default function AuthPage() {
 
       {/* ═══════════ 注册 ═══════════ */}
       {mode === "register" && (
-        <section className="auth-card" aria-label="注册">
+        <section className="auth-card auth-card-register" aria-label="注册">
           <h2>注册</h2>
           <p className="auth-help">创建你的 OPC 身份，开始建立专业链接。</p>
           <form onSubmit={submit} noValidate>

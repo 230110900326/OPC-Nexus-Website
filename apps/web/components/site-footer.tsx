@@ -9,16 +9,10 @@ const footerGroups = [
   {
     title: "平台频道",
     links: [
-      ["首页", "/"],
       ["今日推荐", "/discover"],
-      ["资讯", "/news"],
-      ["政策", "/policies"],
       ["洞察 / 专栏", "/insights"],
-      ["视频", "/videos"],
       ["社区讨论", "/community"],
       ["需求广场", "/demands"],
-      ["活动中心", "/events"],
-      ["全站热榜", "/rankings"],
     ],
   },
   {
@@ -75,7 +69,15 @@ export function SiteFooter() {
         <div className="site-footer-lead">
           <p className="footer-kicker">OPC NEXUS / CONTINUE THE SIGNAL</p>
           <BrandLogo tone="light" className="footer-logo" />
-          <p className="footer-motto">洞察 · 链接 · 增长</p>
+          <div className="footer-belief">
+            <p className="footer-belief-label">BRAND BELIEF / 品牌理念</p>
+            <p className="footer-belief-en" lang="en">
+              <span><b>P</b>erceive trends,</span>
+              <span><b>P</b>artner peers,</span>
+              <span><b>P</b>rogress profits.</span>
+            </p>
+            <p className="footer-belief-zh">洞察先机，联结聚力，增长不息</p>
+          </div>
         </div>
         <nav className="site-footer-directory" aria-label="页脚导航">
           {footerGroups.map((group) => <FooterDirectoryGroup group={group} key={group.title} />)}
