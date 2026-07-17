@@ -75,7 +75,7 @@ export default function AuthPage() {
 
   return <main className="auth-page">
     <BrandLogo tone="dark" />
-    <section className="auth-shell">
+    <section className={`auth-shell${mode === "register" ? " auth-shell-top" : ""}`}>
       <aside className="auth-aside">
         <p className="eyebrow">身份档案 · OPC</p>
         <h1>{aside.heading}</h1>
