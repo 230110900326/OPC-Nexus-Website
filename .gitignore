@@ -1,5 +1,6 @@
 # Dependencies and build outputs
 node_modules/
+.codex-tmp/
 .next/
 dist/
 coverage/
@@ -22,5 +23,6 @@ redis-data/
 # Logs and editor files
 *.log
 .DS_Store
+.claude/
 .idea/
 .vscode/

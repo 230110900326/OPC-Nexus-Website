@@ -67,7 +67,7 @@ function FooterDirectoryGroup({ group }: { group: FooterGroup }) {
 
 export function SiteFooter() {
   const pathname = usePathname();
-  if (pathname.startsWith("/admin")) return null;
+  if (pathname.startsWith("/admin") || pathname.startsWith("/auth")) return null;
 
   return (
     <footer className="site-footer">
