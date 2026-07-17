@@ -76,9 +76,6 @@ export function SiteFooter() {
           <p className="footer-kicker">OPC NEXUS / CONTINUE THE SIGNAL</p>
           <BrandLogo tone="light" className="footer-logo" />
           <p className="footer-motto">洞察 · 链接 · 增长</p>
-          <h2>判断不止于此。</h2>
-          <p>把资讯、政策与同行经验放在同一张桌面上，保留证据，也保留不同意见。</p>
-          <Link className="footer-primary-link" href="/discover">进入今日推荐 <span aria-hidden="true">→</span></Link>
         </div>
         <nav className="site-footer-directory" aria-label="页脚导航">
           {footerGroups.map((group) => <FooterDirectoryGroup group={group} key={group.title} />)}

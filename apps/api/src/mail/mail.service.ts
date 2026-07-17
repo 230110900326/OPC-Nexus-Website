@@ -1,32 +1,58 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import * as nodemailer from "nodemailer";
 import type { Transporter } from "nodemailer";
 
 @Injectable()
 export class MailService {
-  private transporter: Transporter;
-  private readonly from: string;
+  private transporter!: Transporter;
+  private from!: string;
+  private readonly logger = new Logger(MailService.name);
 
   constructor(private readonly config: ConfigService) {
-    const host = this.config.getOrThrow<string>("SMTP_HOST");
-    const port = Number(this.config.getOrThrow<string>("SMTP_PORT"));
-    const user = this.config.getOrThrow<string>("SMTP_USER");
-    const pass = this.config.getOrThrow<string>("SMTP_PASS");
-    const secure = port === 465;
+    const host = this.config.get<string>("SMTP_HOST") || "";
+    const user = this.config.get<string>("SMTP_USER") || "";
 
-    this.transporter = nodemailer.createTransport({ host, port, secure, auth: { user, pass } });
-    this.from = this.config.get<string>("SMTP_FROM") || `"OPC Nexus" <${user}>`;
+    if (host && user) {
+      const port = Number(this.config.get<string>("SMTP_PORT", "465"));
+      const pass = this.config.get<string>("SMTP_PASS") || "";
+      const secure = port === 465;
+      this.transporter = nodemailer.createTransport({ host, port, secure, auth: { user, pass } });
+      this.from = this.config.get<string>("SMTP_FROM") || `"OPC Nexus" <${user}>`;
+      this.logger.log(`MailService ready: ${host}:${port} as ${user}`);
+    } else {
+      this.from = `"OPC Nexus [TEST]" <no-reply@ethereal.email>`;
+      this.logger.warn("[DEV] No SMTP configured — using Ethereal test account. Reset links will be logged.");
+      this.initEthereal();
+    }
+  }
+
+  private async initEthereal() {
+    const account = await nodemailer.createTestAccount();
+    this.transporter = nodemailer.createTransport({
+      host: "smtp.ethereal.email", port: 587, secure: false,
+      auth: { user: account.user, pass: account.pass },
+    });
+    this.from = `"OPC Nexus [TEST]" <${account.user}>`;
+    this.logger.log(`Ethereal account: ${account.user}`);
   }
 
   async sendPasswordResetEmail(to: string, resetUrl: string): Promise<void> {
     const html = this.resetTemplate(resetUrl);
-    await this.transporter.sendMail({
-      from: this.from,
-      to,
+    const info = await this.transporter.sendMail({
+      from: this.from, to,
       subject: "OPC Nexus — 重置你的密码",
       html,
     });
+
+    const isEthereal = "nodemailer" in info && typeof (info as any).getTestMessageUrl === "function";
+    if (isEthereal) {
+      const previewUrl = (info as any).nodemailer.getTestMessageUrl(info);
+      this.logger.warn(`[DEV] Reset email preview: ${previewUrl}`);
+    }
+
+    // Always log the reset URL so developers can test without email
+    this.logger.log(`[DEV] Reset URL for ${to}: ${resetUrl}`);
   }
 
   private resetTemplate(resetUrl: string): string {
@@ -42,13 +68,11 @@ export class MailService {
     <tr>
       <td align="center">
         <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:2px;box-shadow:0 1px 8px rgba(11,29,44,.07);">
-          <!-- Header -->
           <tr>
             <td style="padding:36px 40px 0;text-align:left;">
               <span style="font-weight:800;font-size:14px;letter-spacing:.14em;color:#0b1d2c;">OPC <span style="background:#b56a3b;color:#fff;padding:3px 6px;font-size:10px;border-radius:1px;">NEXUS</span></span>
             </td>
           </tr>
-          <!-- Body -->
           <tr>
             <td style="padding:32px 40px 36px;">
               <h1 style="margin:0 0 12px;font:500 28px Georgia,'Noto Serif SC',serif;color:#0b1d2c;letter-spacing:-.04em;">重置你的密码</h1>
@@ -64,7 +88,6 @@ export class MailService {
               <p style="margin:8px 0 0;padding:12px;background:#f0eee8;font:11px ui-monospace,monospace;color:#0b1d2c;word-break:break-all;">${resetUrl}</p>
             </td>
           </tr>
-          <!-- Footer -->
           <tr>
             <td style="padding:24px 40px 28px;border-top:1px solid rgba(11,29,44,.12);color:#8a979e;font-size:11px;line-height:1.7;">
               <p style="margin:0;">如果你没有请求重置密码，请忽略此邮件 — 你的账户安全不受影响。</p>
