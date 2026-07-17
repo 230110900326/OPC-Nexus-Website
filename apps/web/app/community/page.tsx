@@ -1,3 +1,3 @@
 import { CommunityIndex } from "../../components/community-index";
-import { SiteHeader } from "../../components/site-header";
-export default function CommunityPage() { return <><SiteHeader /><CommunityIndex /></>; }
+import { SiteChrome } from "../../components/site-chrome";
+export default function CommunityPage() { return <SiteChrome><CommunityIndex /></SiteChrome>; }

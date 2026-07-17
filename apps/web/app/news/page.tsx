@@ -1,3 +1,3 @@
-import { SiteHeader } from "../../components/site-header";
+import { SiteChrome } from "../../components/site-chrome";
 import { NewsIndex } from "../../components/news-index";
-export default function NewsPage() { return <><SiteHeader /><NewsIndex type="news" /></>; }
+export default function NewsPage() { return <SiteChrome><NewsIndex type="news" /></SiteChrome>; }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SiteFooter } from "../components/site-footer";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -7,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="zh-CN"><body>{children}</body></html>;
+  return <html lang="zh-CN"><body id="top">{children}<SiteFooter /></body></html>;
 }

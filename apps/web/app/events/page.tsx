@@ -1,3 +1,3 @@
 import { EventsIndex } from "../../components/events-index";
-import { SiteHeader } from "../../components/site-header";
-export default function EventsPage() { return <><SiteHeader /><EventsIndex /></>; }
+import { SiteChrome } from "../../components/site-chrome";
+export default function EventsPage() { return <SiteChrome><EventsIndex /></SiteChrome>; }

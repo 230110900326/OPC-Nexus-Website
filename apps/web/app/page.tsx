@@ -1,4 +1,4 @@
 import { HomepagePortal } from "../components/homepage-portal";
-import { SiteHeader } from "../components/site-header";
+import { SiteChrome } from "../components/site-chrome";
 
-export default function HomePage() { return <><SiteHeader /><HomepagePortal /></>; }
+export default function HomePage() { return <SiteChrome><HomepagePortal /></SiteChrome>; }

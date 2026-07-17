@@ -26,7 +26,7 @@ export function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="site-header" id="top">
+    <header className="site-header">
       <BrandLogo />
       <nav className="primary-navigation" aria-label="主导航">
         {navigation.map((item) => {

@@ -1,3 +1,3 @@
 import { ForumPostDetail } from "../../../../components/forum-post-detail";
-import { SiteHeader } from "../../../../components/site-header";
-export default function ForumPostPage() { return <><SiteHeader /><ForumPostDetail /></>; }
+import { SiteChrome } from "../../../../components/site-chrome";
+export default function ForumPostPage() { return <SiteChrome><ForumPostDetail /></SiteChrome>; }

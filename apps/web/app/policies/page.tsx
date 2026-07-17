@@ -1,3 +1,3 @@
-import { SiteHeader } from "../../components/site-header";
+import { SiteChrome } from "../../components/site-chrome";
 import { NewsIndex } from "../../components/news-index";
-export default function PoliciesPage() { return <><SiteHeader /><NewsIndex type="policy" /></>; }
+export default function PoliciesPage() { return <SiteChrome><NewsIndex type="policy" /></SiteChrome>; }

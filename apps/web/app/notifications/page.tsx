@@ -1,3 +1,3 @@
 import { NotificationsCenter } from "../../components/notifications-center";
-import { SiteHeader } from "../../components/site-header";
-export default function NotificationsPage() { return <><SiteHeader /><NotificationsCenter /></>; }
+import { SiteChrome } from "../../components/site-chrome";
+export default function NotificationsPage() { return <SiteChrome><NotificationsCenter /></SiteChrome>; }
