@@ -38,7 +38,12 @@ export function SiteHeader() {
         </nav>
         <div className="header-actions">
           <Link href="/admin/dashboard">运营台</Link>
-          <Link href="/notifications">通知</Link>
+          <Link className="notification-bell" href="/notifications" aria-label="通知">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+          </Link>
           <Link className="login-button" href="/auth">登录 / 注册</Link>
         </div>
         <button className="mobile-navigation-toggle" type="button" aria-expanded={menuOpen} aria-controls="mobile-navigation" onClick={() => setMenuOpen((open) => !open)}>
@@ -53,7 +58,7 @@ export function SiteHeader() {
             })}
           </nav>
           <div className="mobile-navigation-actions">
-            <Link href="/notifications" onClick={() => setMenuOpen(false)}>通知</Link>
+            <Link href="/notifications" onClick={() => setMenuOpen(false)}>🔔 通知</Link>
             <Link href="/admin/dashboard" onClick={() => setMenuOpen(false)}>运营台</Link>
             <Link href="/auth" onClick={() => setMenuOpen(false)}>登录 / 注册 <span>→</span></Link>
           </div>
