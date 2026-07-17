@@ -382,6 +382,32 @@ select:focus-visible {
   button { transition:none; }
 }
 
+/* Registration consent and legal-document links. */
+.auth-consent {
+  display:grid;
+  grid-template-columns:17px minmax(0,1fr);
+  gap:10px;
+  align-items:start;
+  color:var(--ink-soft);
+  font-size:12px;
+  line-height:1.65;
+}
+.auth-consent input {
+  width:16px;
+  height:16px;
+  margin:2px 0 0;
+  padding:0;
+  border:1px solid var(--line);
+  accent-color:var(--copper);
+  cursor:pointer;
+}
+.auth-consent label { display:inline; color:var(--ink); font-weight:400; cursor:pointer; }
+.auth-consent a,
+.auth-policy-note a { color:var(--copper); text-decoration:underline; text-underline-offset:3px; }
+.auth-consent a:hover,
+.auth-policy-note a:hover { color:var(--ink); }
+.auth-policy-note { margin:0; color:var(--ink-soft); font-size:12px; line-height:1.65; }
+
 /* Stage K: shared public navigation and closing ledger. */
 .site-shell { min-height:100vh; display:flex; flex-direction:column; }
 .site-content { flex:1 0 auto; min-width:0; }

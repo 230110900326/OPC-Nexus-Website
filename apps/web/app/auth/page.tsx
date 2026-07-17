@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "../../lib/auth";
 import { BrandLogo } from "../../components/brand-logo";
@@ -10,9 +11,15 @@ export default function AuthPage() {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
+  const [acceptedPolicies, setAcceptedPolicies] = useState(false);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setError(""); setPending(true);
+    event.preventDefault(); setError("");
+    if (mode === "register" && !acceptedPolicies) {
+      setError("请先阅读并同意用户服务协议和隐私政策");
+      return;
+    }
+    setPending(true);
     const fields = new FormData(event.currentTarget);
     const input = Object.fromEntries(fields.entries()) as Record<string, string>;
     try {
@@ -36,6 +43,10 @@ export default function AuthPage() {
           {mode === "register" && <label>显示名称<input required name="displayName" minLength={2} maxLength={60} placeholder="例如：王知行" /></label>}
           <label>邮箱<input required name="email" type="email" autoComplete="email" placeholder="name@company.com" /></label>
           <label>密码<input required name="password" type="password" minLength={8} autoComplete={mode === "login" ? "current-password" : "new-password"} placeholder="至少 8 位，包含字母和数字" /></label>
+          {mode === "register" ? <div className="auth-consent">
+            <input id="accepted-policies" type="checkbox" checked={acceptedPolicies} onChange={(event) => setAcceptedPolicies(event.target.checked)} aria-required="true" />
+            <span><label htmlFor="accepted-policies">我已阅读并同意</label> <Link href="/terms" target="_blank" rel="noopener noreferrer">《用户服务协议》</Link>和<Link href="/privacy" target="_blank" rel="noopener noreferrer">《隐私政策》</Link></span>
+          </div> : <p className="auth-policy-note">登录前可查看 <Link href="/terms" target="_blank" rel="noopener noreferrer">《用户服务协议》</Link>和<Link href="/privacy" target="_blank" rel="noopener noreferrer">《隐私政策》</Link>。</p>}
           {error && <p className="form-error" role="alert">{error}</p>}
           <button className="auth-submit" disabled={pending}>{pending ? "正在处理…" : mode === "login" ? "登录并继续" : "创建账号"}<span>→</span></button>
         </form>
