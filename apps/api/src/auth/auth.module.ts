@@ -8,9 +8,10 @@ import { RolesGuard } from "./roles.guard";
 import { Role } from "../database/entities/role.entity";
 import { User } from "../database/entities/user.entity";
 import { AuditModule } from "../audit/audit.module";
+import { MailModule } from "../mail/mail.module";
 
 @Module({
-  imports: [AuditModule, JwtModule.register({}), TypeOrmModule.forFeature([User, Role])],
+  imports: [AuditModule, MailModule, JwtModule.register({}), TypeOrmModule.forFeature([User, Role])],
   controllers: [AuthController],
   providers: [AuthService, JwtAuthGuard, RolesGuard],
   exports: [AuthService, JwtAuthGuard, RolesGuard, JwtModule, TypeOrmModule],

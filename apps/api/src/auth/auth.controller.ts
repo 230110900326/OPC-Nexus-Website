@@ -7,6 +7,8 @@ import { AuthService } from "./auth.service";
 import { AuthUser } from "./auth-user.interface";
 import { LoginDto } from "./dto/login.dto";
 import { RegisterDto } from "./dto/register.dto";
+import { ForgotPasswordDto } from "./dto/forgot-password.dto";
+import { ResetPasswordDto } from "./dto/reset-password.dto";
 import { JwtAuthGuard } from "./jwt-auth.guard";
 
 @Controller("auth")
@@ -46,6 +48,22 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async me(@AuthenticatedUser() user: AuthUser) {
     return { success: true, data: this.auth.publicUser(await this.auth.getProfile(user.id)) };
+  }
+
+  @Post("forgot-password")
+  @HttpCode(200)
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
+  async forgotPassword(@Body() input: ForgotPasswordDto) {
+    await this.auth.forgotPassword(input.email);
+    return { success: true, data: { message: "如果该邮箱已注册，我们会发送一封密码重置邮件。" } };
+  }
+
+  @Post("reset-password")
+  @HttpCode(200)
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  async resetPassword(@Body() input: ResetPasswordDto) {
+    await this.auth.resetPassword(input);
+    return { success: true, data: { message: "密码已重置，请返回登录。" } };
   }
 
   private respondWithSession(session: Awaited<ReturnType<AuthService["login"]>>, response: Response) {

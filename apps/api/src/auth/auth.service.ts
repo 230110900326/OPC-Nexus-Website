@@ -1,7 +1,8 @@
-import { ConflictException, Injectable, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcryptjs";
+import * as crypto from "crypto";
 import { Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 import { SystemRole, Role } from "../database/entities/role.entity";
@@ -9,8 +10,10 @@ import { User } from "../database/entities/user.entity";
 import { AuthUser } from "./auth-user.interface";
 import { LoginDto } from "./dto/login.dto";
 import { RegisterDto } from "./dto/register.dto";
+import { ResetPasswordDto } from "./dto/reset-password.dto";
 import { AuditService } from "../audit/audit.service";
 import { AuditAction } from "../database/entities/audit-log.entity";
+import { MailService } from "../mail/mail.service";
 
 @Injectable()
 export class AuthService {
@@ -20,6 +23,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly config: ConfigService,
     private readonly audit: AuditService,
+    private readonly mail: MailService,
   ) {}
 
   async register(input: RegisterDto) {
@@ -55,6 +59,45 @@ export class AuthService {
   async logout(userId: string) { await this.users.update(userId, { refreshTokenHash: null }); }
 
   async getProfile(userId: string) { return this.users.findOneOrFail({ where: { id: userId }, relations: { roles: true } }); }
+
+  async forgotPassword(email: string) {
+    const normalized = email.trim().toLowerCase();
+    // Always return success to avoid email enumeration
+    const user = await this.users.findOne({ where: { email: normalized } });
+    if (!user) return;
+
+    const token = crypto.randomBytes(48).toString("hex");
+    const expires = new Date(Date.now() + 3600_000); // 1 hour
+
+    await this.users.update(user.id, { passwordResetToken: await bcrypt.hash(token, 12), passwordResetExpires: expires });
+
+    const webOrigin = this.config.get<string>("WEB_ORIGIN", "http://localhost:3000");
+    const resetUrl = `${webOrigin}/auth/reset-password?token=${token}&id=${user.id}`;
+
+    await this.mail.sendPasswordResetEmail(user.email, resetUrl);
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+    const user = await this.users.createQueryBuilder("user")
+      .addSelect("user.passwordResetToken")
+      .addSelect("user.passwordHash")
+      .where("user.id = :id", { id: dto.userId })
+      .getOne();
+
+    if (!user?.passwordResetToken || !user.passwordResetExpires || user.passwordResetExpires < new Date()) {
+      throw new BadRequestException("重置链接已过期或无效，请重新发起找回密码请求。");
+    }
+
+    if (!(await bcrypt.compare(dto.token, user.passwordResetToken))) {
+      throw new BadRequestException("重置链接已过期或无效，请重新发起找回密码请求。");
+    }
+
+    await this.users.update(user.id, {
+      passwordHash: await bcrypt.hash(dto.password, 12),
+      passwordResetToken: null,
+      passwordResetExpires: null,
+    });
+  }
 
   private async issueSession(user: User) {
     const roles = user.roles.map((role) => role.name);

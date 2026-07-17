@@ -11,7 +11,7 @@ describe("AuthService refresh failures", () => {
   const users = { createQueryBuilder: jest.fn(() => query) } as unknown as Repository<User>;
   const jwt = { verifyAsync: jest.fn() };
   const config = { getOrThrow: jest.fn(() => "refresh-secret-with-at-least-32-characters") };
-  const service = new AuthService(users, {} as Repository<Role>, jwt as never, config as never, { record: jest.fn() } as never);
+  const service = new AuthService(users, {} as Repository<Role>, jwt as never, config as never, { record: jest.fn() } as never, { sendPasswordResetEmail: jest.fn() } as never);
 
   beforeEach(() => { jest.clearAllMocks(); for (const method of ["addSelect", "leftJoinAndSelect", "where"] as const) query[method].mockReturnValue(query); });
 

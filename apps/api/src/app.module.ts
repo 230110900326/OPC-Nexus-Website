@@ -72,6 +72,7 @@ import { DemandsModule } from "./demands/demands.module";
         COOKIE_SECURE: Joi.boolean().optional(), REFRESH_COOKIE_PATH: Joi.string().pattern(/^\/.*/).default("/"),
         API_PUBLIC_URL: Joi.string().uri().default("http://localhost:4000"), STORAGE_DRIVER: Joi.string().valid("local", "s3").default("local"), UPLOAD_DIR: Joi.string().default("uploads"),
         S3_ENDPOINT: Joi.string().uri().when("STORAGE_DRIVER", { is: "s3", then: Joi.required() }), S3_REGION: Joi.string().default("auto"), S3_BUCKET: Joi.string().when("STORAGE_DRIVER", { is: "s3", then: Joi.required() }), S3_ACCESS_KEY_ID: Joi.string().when("STORAGE_DRIVER", { is: "s3", then: Joi.required() }), S3_SECRET_ACCESS_KEY: Joi.string().when("STORAGE_DRIVER", { is: "s3", then: Joi.required() }), S3_PUBLIC_BASE_URL: Joi.string().uri().optional(),
+        SMTP_HOST: Joi.string().hostname().required(), SMTP_PORT: Joi.number().port().required(), SMTP_USER: Joi.string().required(), SMTP_PASS: Joi.string().required(), SMTP_FROM: Joi.string().optional(),
       }),
     }),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),

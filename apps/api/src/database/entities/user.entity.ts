@@ -36,6 +36,12 @@ export class User {
   @Column({ name: "is_active", type: "boolean", default: true })
   isActive!: boolean;
 
+  @Column({ name: "password_reset_token", type: "varchar", length: 255, nullable: true, select: false })
+  passwordResetToken!: string | null;
+
+  @Column({ name: "password_reset_expires", type: "timestamptz", nullable: true })
+  passwordResetExpires!: Date | null;
+
   @Column({ name: "ban_reason", type: "varchar", length: 500, nullable: true })
   banReason!: string | null;
 

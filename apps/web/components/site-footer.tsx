@@ -83,10 +83,6 @@ export function SiteFooter() {
         <nav className="site-footer-directory" aria-label="页脚导航">
           {footerGroups.map((group) => <FooterDirectoryGroup group={group} key={group.title} />)}
         </nav>
-        <div className="site-footer-risk">
-          <span>风险提示</span>
-          <p>OPC Nexus 仅提供信息聚合与供需对接平台，不参与交易、不提供担保，也不构成任何投资建议；所有线上与线下合作请独立核验并自行承担风险。</p>
-        </div>
         <div className="site-footer-bottom">
           <p>© 2026 OPC Nexus</p>
           <p>财经产业社群 · 保留不同判断</p>
