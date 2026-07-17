@@ -68,9 +68,20 @@ export default function AuthPage() {
     }
   }
 
+  const aside =
+    mode === "forgot" ? { heading: <>找回<br />你的<span>密码</span></>, desc: "输入你注册时使用的邮箱，我们会发送一封密码重置邮件。" }
+    : mode === "register" ? { heading: <>创建<br />你的<span>身份</span></>, desc: "我们只收集建立专业档案所需的信息。" }
+    : { heading: <>从一次登录<br />开始<span>建立链接</span></>, desc: "完善你的行业身份，让有价值的信息和对话更快找到你。" };
+
   return <main className="auth-page">
     <BrandLogo tone="dark" />
-    <div className="auth-shell">
+    <section className="auth-shell">
+      <aside className="auth-aside">
+        <p className="eyebrow">身份档案 · OPC</p>
+        <h1>{aside.heading}</h1>
+        <p>{aside.desc}</p>
+        <div className="auth-index"><b>01</b><span>身份验证</span><b>02</b><span>行业定位</span><b>03</b><span>专业连接</span></div>
+      </aside>
 
       {/* ═══════════ 登录 ═══════════ */}
       {mode === "login" && (
@@ -86,7 +97,7 @@ export default function AuthPage() {
           </form>
           <p className="auth-switch-hint">
             还没有账号？<button type="button" onClick={() => switchMode("register")}>立即注册</button>
-            <span style={{margin:"0 10px",color:"var(--line)"}}>|</span>
+            <span className="auth-switch-sep">|</span>
             <button type="button" onClick={() => switchMode("forgot")}>忘记密码？</button>
           </p>
         </section>
@@ -127,6 +138,6 @@ export default function AuthPage() {
           <p className="auth-switch-hint"><button type="button" onClick={() => switchMode("login")}>← 返回登录</button></p>
         </section>
       )}
-    </div>
+    </section>
   </main>;
 }
