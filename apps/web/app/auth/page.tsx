@@ -59,9 +59,8 @@ export default function AuthPage() {
         : { email: input.email, password: input.password };
 
       await signIn(mode, request);
-      const requested = new URLSearchParams(window.location.search).get("next");
-      const destination = requested?.startsWith("/") && !requested.startsWith("//") && !requested.includes("\\") ? requested : "/account";
-      router.replace(destination);
+      const dest = new URLSearchParams(window.location.search).get("next");
+      router.replace(dest?.startsWith("/") && !dest.startsWith("//") && !dest.includes("\\") ? dest : "/account");
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "暂时无法完成操作");
     } finally {
@@ -69,91 +68,65 @@ export default function AuthPage() {
     }
   }
 
-  const asideContent =
-    mode === "forgot" ? { heading: <>找回<br />你的<span>密码</span></>, desc: "输入你注册时使用的邮箱，我们会发送一封密码重置邮件。" }
-    : mode === "register" ? { heading: <>创建<br />你的<span>身份</span></>, desc: "我们只收集建立专业档案所需的信息。" }
-    : { heading: <>从一次登录<br />开始<span>建立链接</span></>, desc: "完善你的行业身份，让有价值的信息和对话更快找到你。" };
-
   return <main className="auth-page">
     <BrandLogo tone="dark" />
-    <section className="auth-shell">
-      <aside className="auth-aside">
-        <p className="eyebrow">身份档案 · OPC</p>
-        <h1>{asideContent.heading}</h1>
-        <p>{asideContent.desc}</p>
-        <div className="auth-index"><b>01</b><span>身份验证</span><b>02</b><span>行业定位</span><b>03</b><span>专业连接</span></div>
-      </aside>
+    <div className="auth-shell">
 
       {/* ═══════════ 登录 ═══════════ */}
       {mode === "login" && (
-        <section className="auth-card" aria-labelledby="auth-heading">
-          <div className="auth-card-top">
-            <span className="auth-card-label">登录</span>
-            <button type="button" className="auth-forgot-link" onClick={() => switchMode("forgot")}>忘记密码？</button>
-          </div>
-
-          <h2 id="auth-heading">欢迎回来</h2>
-          <p className="auth-help">使用你的邮箱和密码继续。</p>
-
+        <section className="auth-card" aria-label="登录">
+          <h2>登录</h2>
+          <p className="auth-help">欢迎回来，请登录你的账号。</p>
           <form onSubmit={submit} noValidate>
             <label>邮箱<input required name="email" type="email" autoComplete="email" placeholder="name@company.com" /></label>
-            <label>密码<input required name="password" type="password" minLength={8} autoComplete="current-password" placeholder="至少 8 位，包含字母和数字" /></label>
+            <label>密码<input required name="password" type="password" minLength={8} autoComplete="current-password" placeholder="至少 8 位" /></label>
             <p className="auth-policy-note">登录前可查看 <Link href="/terms" target="_blank" rel="noopener noreferrer">《用户服务协议》</Link>和<Link href="/privacy" target="_blank" rel="noopener noreferrer">《隐私政策》</Link>。</p>
             {error && <p className="form-error" role="alert">{error}</p>}
-            <button className="auth-submit" disabled={pending}>{pending ? "正在处理…" : "登录并继续"}<span>→</span></button>
+            <button className="auth-submit" disabled={pending}>{pending ? "处理中…" : "登录"}</button>
           </form>
-
-          <p className="auth-switch-hint">还没有账号？<button type="button" onClick={() => switchMode("register")}>立即注册</button></p>
+          <p className="auth-switch-hint">
+            还没有账号？<button type="button" onClick={() => switchMode("register")}>立即注册</button>
+            <span style={{margin:"0 10px",color:"var(--line)"}}>|</span>
+            <button type="button" onClick={() => switchMode("forgot")}>忘记密码？</button>
+          </p>
         </section>
       )}
 
       {/* ═══════════ 注册 ═══════════ */}
       {mode === "register" && (
-        <section className="auth-card" aria-labelledby="auth-heading">
-          <div className="auth-card-top">
-            <span className="auth-card-label">注册</span>
-          </div>
-
-          <h2 id="auth-heading">创建你的 OPC 身份</h2>
-          <p className="auth-help">我们只收集建立专业档案所需的信息。</p>
-
+        <section className="auth-card" aria-label="注册">
+          <h2>注册</h2>
+          <p className="auth-help">创建你的 OPC 身份，开始建立专业链接。</p>
           <form onSubmit={submit} noValidate>
             <label>显示名称<input required name="displayName" minLength={2} maxLength={60} placeholder="例如：王知行" /></label>
             <label>邮箱<input required name="email" type="email" autoComplete="email" placeholder="name@company.com" /></label>
             <label>密码<input required name="password" type="password" minLength={8} autoComplete="new-password" placeholder="至少 8 位，包含字母和数字" /></label>
             <label>确认密码<input required name="confirmPassword" type="password" minLength={8} autoComplete="new-password" placeholder="请再次输入密码" /></label>
             <div className="auth-consent">
-              <input id="accepted-policies" type="checkbox" checked={acceptedPolicies} onChange={(event) => setAcceptedPolicies(event.target.checked)} aria-required="true" />
+              <input id="accepted-policies" type="checkbox" checked={acceptedPolicies} onChange={(e) => setAcceptedPolicies(e.target.checked)} aria-required="true" />
               <span><label htmlFor="accepted-policies">我已阅读并同意</label> <Link href="/terms" target="_blank" rel="noopener noreferrer">《用户服务协议》</Link>和<Link href="/privacy" target="_blank" rel="noopener noreferrer">《隐私政策》</Link></span>
             </div>
             {error && <p className="form-error" role="alert">{error}</p>}
-            <button className="auth-submit" disabled={pending}>{pending ? "正在处理…" : "创建账号"}<span>→</span></button>
+            <button className="auth-submit" disabled={pending}>{pending ? "处理中…" : "注册"}</button>
           </form>
-
           <p className="auth-switch-hint">已有账号？<button type="button" onClick={() => switchMode("login")}>立即登录</button></p>
         </section>
       )}
 
       {/* ═══════════ 找回密码 ═══════════ */}
       {mode === "forgot" && (
-        <section className="auth-card" aria-labelledby="auth-heading">
-          <div className="auth-card-top">
-            <span className="auth-card-label">找回密码</span>
-          </div>
-
-          <h2 id="auth-heading">重置你的密码</h2>
-          <p className="auth-help">请输入注册邮箱，我们会向你发送重置链接。</p>
-
+        <section className="auth-card" aria-label="找回密码">
+          <h2>找回密码</h2>
+          <p className="auth-help">输入你的注册邮箱，我们将发送重置链接到你的邮箱。</p>
           <form onSubmit={submit} noValidate>
             <label>邮箱<input required name="email" type="email" autoComplete="email" placeholder="name@company.com" /></label>
             {error && <p className="form-error" role="alert">{error}</p>}
             {success && <p className="form-success" role="status">{success}</p>}
-            <button className="auth-submit" disabled={pending}>{pending ? "正在处理…" : "发送重置邮件"}<span>→</span></button>
+            <button className="auth-submit" disabled={pending}>{pending ? "处理中…" : "发送重置邮件"}</button>
           </form>
-
           <p className="auth-switch-hint"><button type="button" onClick={() => switchMode("login")}>← 返回登录</button></p>
         </section>
       )}
-    </section>
+    </div>
   </main>;
 }
