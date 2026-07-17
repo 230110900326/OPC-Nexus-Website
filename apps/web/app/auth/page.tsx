@@ -78,10 +78,11 @@ export default function AuthPage() {
     <section className={`auth-shell${mode === "register" ? " auth-shell-register" : ""}`}>
       <aside className={`auth-aside${mode === "register" ? " auth-aside-register" : ""}`}>
         <div className="auth-brand-panel">
-          <p className="eyebrow">OPC NEXUS — 洞察 · 链接 · 增长</p>
+          <p className="eyebrow">OPC NEXUS</p>
           <h1>{aside.heading}</h1>
           <p>{aside.desc}</p>
-          <div className="auth-index"><b>01</b><span>洞察</span><b>02</b><span>链接</span><b>03</b><span>增长</span></div>
+          <p className="auth-tagline-en">Perceive trends, Partner peers, Progress profits.</p>
+          <p className="auth-tagline-zh">洞察先机，联结聚力，增长不息</p>
         </div>
       </aside>
 
