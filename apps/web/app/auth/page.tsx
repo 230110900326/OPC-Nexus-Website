@@ -70,17 +70,19 @@ export default function AuthPage() {
 
   const aside =
     mode === "forgot" ? { heading: <>找回<br />你的<span>密码</span></>, desc: "输入注册邮箱，我们会发送一封密码重置邮件。" }
-    : mode === "register" ? { heading: <>判断<br />不止<span>于此</span></>, desc: "面向财经、产业、投资与企业经营者的专业内容与交流平台。" }
+    : mode === "register" ? { heading: <>创建<span>你的</span><br />OPC 身份</>, desc: "面向财经、产业、投资与企业经营者的专业内容与交流平台。" }
     : { heading: <>判断<br />不止<span>于此</span></>, desc: "不止于信息，还有连接；不止于观点，还有证据；不止于交易，还有信任。" };
 
   return <main className="auth-page">
     <BrandLogo tone="dark" />
     <section className={`auth-shell${mode === "register" ? " auth-shell-register" : ""}`}>
       <aside className={`auth-aside${mode === "register" ? " auth-aside-register" : ""}`}>
-        <p className="eyebrow">OPC NEXUS</p>
-        <h1>{aside.heading}</h1>
-        <p>{aside.desc}</p>
-        <div className="auth-index"><b>01</b><span>洞察</span><b>02</b><span>链接</span><b>03</b><span>增长</span></div>
+        <div className="auth-brand-panel">
+          <p className="eyebrow">OPC NEXUS — 洞察 · 链接 · 增长</p>
+          <h1>{aside.heading}</h1>
+          <p>{aside.desc}</p>
+          <div className="auth-index"><b>01</b><span>洞察</span><b>02</b><span>链接</span><b>03</b><span>增长</span></div>
+        </div>
       </aside>
 
       {/* ═══════════ 登录 ═══════════ */}
