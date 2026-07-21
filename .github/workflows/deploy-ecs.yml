@@ -15,7 +15,9 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # The first image build downloads Node and Python dependencies on the ECS host.
+    # Keep enough headroom for a slow-but-healthy first deployment.
+    timeout-minutes: 60
     env:
       ECS_HOST: ${{ vars.ECS_HOST }}
       ECS_USER: ${{ vars.ECS_USER }}
@@ -35,7 +37,20 @@ jobs:
           install -d -m 700 "$HOME/.ssh"
           printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/id_ed25519"
           printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
-          chmod 600 "$HOME/.ssh/id_ed25519" "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host ecs-production
+            HostName $ECS_HOST
+            User $ECS_USER
+            IdentityFile $HOME/.ssh/id_ed25519
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+            ServerAliveInterval 30
+            ServerAliveCountMax 20
+            TCPKeepAlive yes
+          EOF
+          chmod 600 "$HOME/.ssh/id_ed25519" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"
 
       - name: Package source
         run: |
@@ -47,27 +62,45 @@ jobs:
             --exclude='.next' \
             --exclude='dist' \
             --exclude='coverage' \
+            --exclude='uploads' \
+            --exclude='apps/api/uploads' \
             .
 
       - name: Upload release
         run: |
-          ssh -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
-            "$ECS_USER@$ECS_HOST" \
+          ssh -o BatchMode=yes ecs-production \
             "install -d -m 700 ~/opc-nexus-deploy/incoming ~/opc-nexus-deploy/releases"
-          scp -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+          scp -o BatchMode=yes \
             "$RUNNER_TEMP/opc-nexus-${GITHUB_SHA}.tgz" \
-            "$ECS_USER@$ECS_HOST:~/opc-nexus-deploy/incoming/${GITHUB_SHA}.tgz"
+            "ecs-production:~/opc-nexus-deploy/incoming/${GITHUB_SHA}.tgz"
 
-      - name: Build and activate release
+      - name: Upload remote deployment helper
         run: |
-          ssh -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
-            "$ECS_USER@$ECS_HOST" "bash -s -- '$GITHUB_SHA'" <<'REMOTE'
+          cat > "$RUNNER_TEMP/deploy-remote.sh" <<'REMOTE'
+          #!/usr/bin/env bash
           set -euo pipefail
 
-          revision="$1"
+          revision="${1:?Missing Git revision}"
           deploy_root="$HOME/opc-nexus-deploy"
           archive="$deploy_root/incoming/${revision}.tgz"
           release="$deploy_root/releases/${revision}-$(date +%s)"
+          log_dir="$deploy_root/logs"
+          status_dir="$deploy_root/status"
+          status_file="$status_dir/$revision"
+
+          umask 077
+          mkdir -p "$deploy_root/releases" "$log_dir" "$status_dir"
+          rm -f "$status_file"
+
+          on_exit() {
+            result=$?
+            if [ "$result" -eq 0 ]; then
+              printf 'success\n' > "$status_file"
+            else
+              printf 'failed:%s\n' "$result" > "$status_file"
+            fi
+          }
+          trap on_exit EXIT
 
           test -f "$archive"
           mkdir -p "$release"
@@ -83,9 +116,10 @@ jobs:
           install -m 600 "$deploy_root/.env" "$release/.env"
 
           cd "$release"
-          sudo docker compose --env-file .env -f infra/docker-compose.yml --profile full up -d --build
+          # Do not keep the GitHub SSH session open while downloading/building images.
+          timeout 40m sudo -n docker compose --env-file .env -f infra/docker-compose.yml --profile full up -d --build
 
-          for _ in $(seq 1 60); do
+          for _ in $(seq 1 120); do
             if curl -fsS http://127.0.0.1/healthz >/dev/null && curl -fsS http://127.0.0.1/api/health >/dev/null; then
               ln -sfn "$release" "$deploy_root/current"
               echo "Deployment complete: http://47.111.227.66/"
@@ -98,3 +132,37 @@ jobs:
           sudo docker compose --env-file .env -f infra/docker-compose.yml logs --tail=100 gateway api
           exit 1
           REMOTE
+          chmod 700 "$RUNNER_TEMP/deploy-remote.sh"
+          scp -o BatchMode=yes "$RUNNER_TEMP/deploy-remote.sh" "ecs-production:~/opc-nexus-deploy/deploy-remote.sh"
+
+      - name: Start remote deployment
+        run: |
+          ssh -o BatchMode=yes ecs-production \
+            "mkdir -p ~/opc-nexus-deploy/logs ~/opc-nexus-deploy/status && \
+             rm -f ~/opc-nexus-deploy/status/${GITHUB_SHA} && \
+             (nohup bash ~/opc-nexus-deploy/deploy-remote.sh '${GITHUB_SHA}' \
+               > ~/opc-nexus-deploy/logs/${GITHUB_SHA}.log 2>&1 < /dev/null & echo \$!)"
+
+      - name: Wait for remote deployment
+        run: |
+          for attempt in $(seq 1 270); do
+            status="$(ssh -o BatchMode=yes ecs-production "cat ~/opc-nexus-deploy/status/${GITHUB_SHA} 2>/dev/null || true" || true)"
+            if [ "$status" = "success" ]; then
+              echo "Deployment complete: http://47.111.227.66/"
+              exit 0
+            fi
+            if [[ "$status" == failed:* ]]; then
+              echo "Remote deployment failed: $status"
+              ssh -o BatchMode=yes ecs-production "tail -n 200 ~/opc-nexus-deploy/logs/${GITHUB_SHA}.log 2>/dev/null || true" || true
+              exit 1
+            fi
+            if [ $((attempt % 3)) -eq 0 ]; then
+              echo "Remote build is still running (attempt $attempt/270)."
+              ssh -o BatchMode=yes ecs-production "tail -n 20 ~/opc-nexus-deploy/logs/${GITHUB_SHA}.log 2>/dev/null || true" || true
+            fi
+            sleep 10
+          done
+
+          echo "Timed out waiting for the remote deployment."
+          ssh -o BatchMode=yes ecs-production "tail -n 200 ~/opc-nexus-deploy/logs/${GITHUB_SHA}.log 2>/dev/null || true" || true
+          exit 1
