@@ -5,6 +5,8 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Queue deployments instead of allowing two image builds to compete for the ECS's
+# limited memory. The lock in the job also protects manual commands on the host.
 concurrency:
   group: opc-nexus-ecs-production
   cancel-in-progress: false
@@ -14,87 +16,62 @@ permissions:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    env:
-      ECS_HOST: ${{ vars.ECS_HOST }}
-      ECS_USER: ${{ vars.ECS_USER }}
-      SSH_PRIVATE_KEY: ${{ secrets.ECS_SSH_PRIVATE_KEY }}
-      SSH_KNOWN_HOSTS: ${{ secrets.ECS_SSH_KNOWN_HOSTS }}
+    # This runner is installed on the production ECS. GitHub only needs an
+    # outbound HTTPS connection from the server; it never SSHs into the server.
+    runs-on: [self-hosted, linux, x64]
+    timeout-minutes: 60
 
     steps:
       - name: Check out source
         uses: actions/checkout@v4
 
-      - name: Configure SSH
+      - name: Prepare the production environment
         run: |
-          test -n "$ECS_HOST"
-          test -n "$ECS_USER"
-          test -n "$SSH_PRIVATE_KEY"
-          test -n "$SSH_KNOWN_HOSTS"
-          install -d -m 700 "$HOME/.ssh"
-          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/id_ed25519"
-          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
-          chmod 600 "$HOME/.ssh/id_ed25519" "$HOME/.ssh/known_hosts"
-
-      - name: Package source
-        run: |
-          tar -czf "$RUNNER_TEMP/opc-nexus-${GITHUB_SHA}.tgz" \
-            --exclude-vcs \
-            --exclude='.env' \
-            --exclude='.env.*' \
-            --exclude='node_modules' \
-            --exclude='.next' \
-            --exclude='dist' \
-            --exclude='coverage' \
-            .
-
-      - name: Upload release
-        run: |
-          ssh -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
-            "$ECS_USER@$ECS_HOST" \
-            "install -d -m 700 ~/opc-nexus-deploy/incoming ~/opc-nexus-deploy/releases"
-          scp -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
-            "$RUNNER_TEMP/opc-nexus-${GITHUB_SHA}.tgz" \
-            "$ECS_USER@$ECS_HOST:~/opc-nexus-deploy/incoming/${GITHUB_SHA}.tgz"
-
-      - name: Build and activate release
-        run: |
-          ssh -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
-            "$ECS_USER@$ECS_HOST" "bash -s -- '$GITHUB_SHA'" <<'REMOTE'
           set -euo pipefail
-
-          revision="$1"
+          # Keep secrets outside the checkout so Actions never commits or uploads them.
           deploy_root="$HOME/opc-nexus-deploy"
-          archive="$deploy_root/incoming/${revision}.tgz"
-          release="$deploy_root/releases/${revision}-$(date +%s)"
+          production_env="$deploy_root/.env"
+          mkdir -p "$deploy_root"
 
-          test -f "$archive"
-          mkdir -p "$release"
-          tar -xzf "$archive" -C "$release"
-          test -f "$release/infra/docker-compose.yml"
-
-          # Migrate the initial manual deployment's secrets once, then keep one stable copy.
-          if [ ! -f "$deploy_root/.env" ]; then
-            legacy_env="$(find "$HOME/opc-nexus-releases" -type f -name .env -print 2>/dev/null | sort | tail -n 1)"
+          if [ ! -f "$production_env" ]; then
+            legacy_env="$(find "$HOME/opc-nexus-releases" -type f -name .env -print 2>/dev/null | sort | tail -n 1 || true)"
             test -n "$legacy_env"
-            install -m 600 "$legacy_env" "$deploy_root/.env"
+            install -m 600 "$legacy_env" "$production_env"
           fi
-          install -m 600 "$deploy_root/.env" "$release/.env"
 
-          cd "$release"
-          sudo docker compose --env-file .env -f infra/docker-compose.yml --profile full up -d --build
+          test -s "$production_env"
+          install -m 600 "$production_env" .env
+
+      - name: Build and start application
+        run: |
+          set -euo pipefail
+          deploy_root="$HOME/opc-nexus-deploy"
+
+          flock -w 60 "$deploy_root/deploy.lock" bash -s <<'DEPLOY'
+          set -euo pipefail
+          install -m 600 "$HOME/opc-nexus-deploy/.env" .env
+
+          # Build one service at a time to stay within the 2 GiB ECS memory limit.
+          export COMPOSE_PARALLEL_LIMIT=1
+          timeout 45m sudo -n docker compose --env-file .env -f infra/docker-compose.yml --profile full up -d --build
 
           for _ in $(seq 1 60); do
-            if curl -fsS http://127.0.0.1/healthz >/dev/null && curl -fsS http://127.0.0.1/api/health >/dev/null; then
-              ln -sfn "$release" "$deploy_root/current"
-              echo "Deployment complete: http://47.111.227.66/"
+            if curl -fsS http://127.0.0.1/ >/dev/null && curl -fsS http://127.0.0.1/api/health >/dev/null; then
               exit 0
             fi
             sleep 5
           done
 
-          sudo docker compose --env-file .env -f infra/docker-compose.yml --profile full ps
-          sudo docker compose --env-file .env -f infra/docker-compose.yml logs --tail=100 gateway api
+          echo "The containers started but the public health checks did not pass."
           exit 1
-          REMOTE
+          DEPLOY
+
+      - name: Show deployment status
+        if: always()
+        run: |
+          sudo -n docker compose --env-file .env -f infra/docker-compose.yml --profile full ps
+
+      - name: Show diagnostics after a failed deployment
+        if: failure()
+        run: |
+          sudo -n docker compose --env-file .env -f infra/docker-compose.yml --profile full logs --tail=150 gateway api web crawler
