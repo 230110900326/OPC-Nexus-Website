@@ -1,0 +1,100 @@
+name: Deploy to Alibaba Cloud ECS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: opc-nexus-ecs-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      ECS_HOST: ${{ vars.ECS_HOST }}
+      ECS_USER: ${{ vars.ECS_USER }}
+      SSH_PRIVATE_KEY: ${{ secrets.ECS_SSH_PRIVATE_KEY }}
+      SSH_KNOWN_HOSTS: ${{ secrets.ECS_SSH_KNOWN_HOSTS }}
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Configure SSH
+        run: |
+          test -n "$ECS_HOST"
+          test -n "$ECS_USER"
+          test -n "$SSH_PRIVATE_KEY"
+          test -n "$SSH_KNOWN_HOSTS"
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/id_ed25519" "$HOME/.ssh/known_hosts"
+
+      - name: Package source
+        run: |
+          tar -czf "$RUNNER_TEMP/opc-nexus-${GITHUB_SHA}.tgz" \
+            --exclude-vcs \
+            --exclude='.env' \
+            --exclude='.env.*' \
+            --exclude='node_modules' \
+            --exclude='.next' \
+            --exclude='dist' \
+            --exclude='coverage' \
+            .
+
+      - name: Upload release
+        run: |
+          ssh -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+            "$ECS_USER@$ECS_HOST" \
+            "install -d -m 700 ~/opc-nexus-deploy/incoming ~/opc-nexus-deploy/releases"
+          scp -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+            "$RUNNER_TEMP/opc-nexus-${GITHUB_SHA}.tgz" \
+            "$ECS_USER@$ECS_HOST:~/opc-nexus-deploy/incoming/${GITHUB_SHA}.tgz"
+
+      - name: Build and activate release
+        run: |
+          ssh -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+            "$ECS_USER@$ECS_HOST" "bash -s -- '$GITHUB_SHA'" <<'REMOTE'
+          set -euo pipefail
+
+          revision="$1"
+          deploy_root="$HOME/opc-nexus-deploy"
+          archive="$deploy_root/incoming/${revision}.tgz"
+          release="$deploy_root/releases/${revision}-$(date +%s)"
+
+          test -f "$archive"
+          mkdir -p "$release"
+          tar -xzf "$archive" -C "$release"
+          test -f "$release/infra/docker-compose.yml"
+
+          # Migrate the initial manual deployment's secrets once, then keep one stable copy.
+          if [ ! -f "$deploy_root/.env" ]; then
+            legacy_env="$(find "$HOME/opc-nexus-releases" -type f -name .env -print 2>/dev/null | sort | tail -n 1)"
+            test -n "$legacy_env"
+            install -m 600 "$legacy_env" "$deploy_root/.env"
+          fi
+          install -m 600 "$deploy_root/.env" "$release/.env"
+
+          cd "$release"
+          sudo docker compose --env-file .env -f infra/docker-compose.yml --profile full up -d --build
+
+          for _ in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1/healthz >/dev/null && curl -fsS http://127.0.0.1/api/health >/dev/null; then
+              ln -sfn "$release" "$deploy_root/current"
+              echo "Deployment complete: http://47.111.227.66/"
+              exit 0
+            fi
+            sleep 5
+          done
+
+          sudo docker compose --env-file .env -f infra/docker-compose.yml --profile full ps
+          sudo docker compose --env-file .env -f infra/docker-compose.yml logs --tail=100 gateway api
+          exit 1
+          REMOTE
