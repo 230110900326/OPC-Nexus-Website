@@ -44,5 +44,12 @@ def parse_article(html: str, url: str) -> ParsedArticle:
 
 
 def is_allowed_url(url: str, allowed_domains: set[str]) -> bool:
-    hostname = urlparse(url).hostname
-    return bool(hostname and hostname.lower() in {domain.lower() for domain in allowed_domains})
+    parsed = urlparse(url)
+    if parsed.scheme not in {"http", "https"}:
+        return False
+    hostname = parsed.hostname
+    if not hostname:
+        return False
+    values = {domain.lower().lstrip(".") for domain in allowed_domains}
+    host = hostname.lower()
+    return any(host == domain or host.endswith(f".{domain}") for domain in values)

@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
-export enum CrawlSourceType { NEWS = "news", POLICY = "policy", RSS = "rss", SITEMAP = "sitemap" }
+export enum CrawlSourceType { NEWS = "news", POLICY = "policy", VIDEO = "video", RSS = "rss", SITEMAP = "sitemap" }
 export enum CrawlFetchMethod { HTML = "html", RSS = "rss", SITEMAP = "sitemap", ADAPTER = "adapter" }
 export enum CrawlAuthorizationStatus { PENDING = "pending", AUTHORIZED = "authorized", RESTRICTED = "restricted", REJECTED = "rejected" }
 
@@ -15,6 +15,7 @@ export class CrawlSource {
   @Column({ name: "trust_level", type: "smallint", default: 3 }) trustLevel!: number;
   @Column({ name: "authorization_status", type: "varchar", length: 20, default: CrawlAuthorizationStatus.PENDING }) authorizationStatus!: CrawlAuthorizationStatus;
   @Column({ name: "is_enabled", default: false }) isEnabled!: boolean;
+  @Column({ name: "auto_publish", default: false }) autoPublish!: boolean;
   @Column({ name: "keywords", type: "jsonb", default: () => "'[]'::jsonb" }) keywords!: string[];
   @Column({ name: "entry_url", type: "varchar", length: 1000, nullable: true }) entryUrl!: string | null;
   @Column({ name: "last_crawled_at", type: "timestamptz", nullable: true }) lastCrawledAt!: Date | null;

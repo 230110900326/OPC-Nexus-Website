@@ -1,0 +1,13 @@
+.runAll {
+  flex: none;
+  border: 1px solid var(--ink);
+  padding: 12px 15px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 12px;
+  transition: background .2s ease, color .2s ease;
+}
+
+.runAll:hover:not(:disabled) { background: var(--ink); color: var(--paper); }
+.runAll:disabled { opacity: .5; cursor: wait; }

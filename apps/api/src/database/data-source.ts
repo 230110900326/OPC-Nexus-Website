@@ -48,6 +48,8 @@ import { OpcDemandConnect } from "./entities/opc-demand-connect.entity";
 import { OpcDemand } from "./entities/opc-demand.entity";
 import { DemandMarketplace1710000010000 } from "./migrations/1710000010000-demand-marketplace";
 import { PasswordReset1710000020000 } from "./migrations/1710000020000-password-reset";
+import { CrawlerRuntime1710000021000 } from "./migrations/1710000021000-crawler-runtime";
+import { ZntIntelligence1710000022000 } from "./migrations/1710000022000-znt-intelligence";
 
 export default new DataSource({
   type: "postgres",
@@ -57,6 +59,6 @@ export default new DataSource({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME ?? "opc_nexus",
   entities: [User, Role, Permission, Category, Tag, Article, ArticleSource, ForumSection, Post, Comment, Like, Favorite, Follow, Report, ModerationLog, Event, EventRegistration, Notification, CrawlSource, CrawlJob, CrawlLog, ContentKeyword, CrawlDiscovery, LinkCheck, Creator, CreatorAccount, Video, VideoSyncLog, ContentMetric, InteractionAudit, HomepageConfig, RecommendationEvent, AuditLog, OpcDemand, OpcDemandConnect, DemandBoardConfig],
-  migrations: [InitialAccountSchema1710000000000, ContentSchema1710000001000, ContentCompletion1710000002000, CommunitySchema1710000003000, EventsNotifications1710000004000, CrawlSources1710000005000, CrawlProcessing1710000006000, VideoSchema1710000007000, RankingSchema1710000008000, OperationsSchema1710000009000, DemandMarketplace1710000010000, PasswordReset1710000020000],
+  migrations: [InitialAccountSchema1710000000000, ContentSchema1710000001000, ContentCompletion1710000002000, CommunitySchema1710000003000, EventsNotifications1710000004000, CrawlSources1710000005000, CrawlProcessing1710000006000, VideoSchema1710000007000, RankingSchema1710000008000, OperationsSchema1710000009000, DemandMarketplace1710000010000, PasswordReset1710000020000, CrawlerRuntime1710000021000, ZntIntelligence1710000022000],
   synchronize: false,
 });

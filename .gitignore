@@ -5,7 +5,8 @@ node_modules/
 .next/
 dist/
 coverage/
-uploads/
+/uploads/
+/apps/api/uploads/
 *.tsbuildinfo
 
 # Python

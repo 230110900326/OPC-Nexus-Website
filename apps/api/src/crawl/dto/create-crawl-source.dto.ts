@@ -10,6 +10,7 @@ export class CreateCrawlSourceDto {
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(5) trustLevel?: number;
   @IsOptional() @IsEnum(CrawlAuthorizationStatus) authorizationStatus?: CrawlAuthorizationStatus;
   @IsOptional() @IsBoolean() isEnabled?: boolean;
+  @IsOptional() @IsBoolean() autoPublish?: boolean;
   @IsOptional() @IsArray() @IsString({ each: true }) @MaxLength(80, { each: true }) keywords?: string[];
   @IsOptional() @IsUrl({ require_tld: false }) @MaxLength(1000) entryUrl?: string;
 }
