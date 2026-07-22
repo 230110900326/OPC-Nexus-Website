@@ -28,10 +28,11 @@ function ForgotPasswordForm() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [pending, setPending] = useState(false);
+  const [devResetUrl, setDevResetUrl] = useState("");
   const { remaining, start, active } = useCooldown(60);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault(); setError(""); setSuccess("");
+    e.preventDefault(); setError(""); setSuccess(""); setDevResetUrl("");
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       setError("请输入有效的邮箱地址"); return;
     }
@@ -45,7 +46,10 @@ function ForgotPasswordForm() {
         const body = await res.json().catch(() => ({}));
         throw new Error((body as any)?.error?.message || "暂时无法发送重置邮件，请稍后再试");
       }
-      setSuccess("✅ 如果该邮箱已注册，我们会发送一封密码重置邮件，请查收。");
+      const body = await res.json().catch(() => ({}));
+      const data = (body as any)?.data ?? {};
+      setSuccess(data?.message ?? "✅ 如果该邮箱已注册，我们会发送一封密码重置邮件，请查收。");
+      if (data?.devResetUrl) setDevResetUrl(data.devResetUrl);
       start();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "网络错误，请检查连接后重试");
@@ -56,10 +60,23 @@ function ForgotPasswordForm() {
     return (
       <div style={{ textAlign: "center", padding: "8px 0" }}>
         <div className="form-success" style={{ marginBottom: 16, fontSize: 14 }} role="status">{success}</div>
-        <p style={{ color: "var(--ink-soft)", fontSize: 13, lineHeight: 1.7, margin: "0 0 20px" }}>
-          未收到邮件？请检查垃圾邮件箱，或等待 1 分钟后重新发送。
-        </p>
-        <button className="auth-submit" style={{ maxWidth: 260, margin: "0 auto" }} disabled={active} onClick={() => { setSuccess(""); setError(""); }}>
+        {devResetUrl && (
+          <div style={{ marginBottom: 16, padding: 14, background: "#fff8e5", border: "1px solid #f0d99a", borderRadius: 4, textAlign: "left" }}>
+            <p style={{ margin: "0 0 8px", color: "#7a5d1e", fontSize: 12, fontWeight: 700 }}>🔧 开发模式 — 邮件未实际发送，可直接使用下方链接：</p>
+            <a href={devResetUrl} style={{ display: "block", padding: "10px 14px", background: "var(--copper)", color: "#fff", textAlign: "center", borderRadius: 2, fontWeight: 700, fontSize: 13, textDecoration: "none" }}>
+              点击重置密码 <span style={{ paddingLeft: 10, fontSize: 16 }}>→</span>
+            </a>
+            <p style={{ margin: "10px 0 0", color: "var(--ink-soft)", fontSize: 10, wordBreak: "break-all", lineHeight: 1.5 }}>
+              链接：{devResetUrl}
+            </p>
+          </div>
+        )}
+        {!devResetUrl && (
+          <p style={{ color: "var(--ink-soft)", fontSize: 13, lineHeight: 1.7, margin: "0 0 20px" }}>
+            未收到邮件？请检查垃圾邮件箱，或等待 1 分钟后重新发送。
+          </p>
+        )}
+        <button className="auth-submit" style={{ maxWidth: 260, margin: "0 auto" }} disabled={active} onClick={() => { setSuccess(""); setError(""); setDevResetUrl(""); }}>
           {active ? `${remaining} 秒后可重新发送` : "重新发送重置邮件"}
         </button>
       </div>

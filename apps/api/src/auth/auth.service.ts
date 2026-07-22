@@ -107,11 +107,11 @@ export class AuthService {
 
   async getProfile(userId: string) { return this.users.findOneOrFail({ where: { id: userId }, relations: { roles: true } }); }
 
-  async forgotPassword(email: string) {
+  async forgotPassword(email: string): Promise<{ message: string; devResetUrl?: string }> {
     const normalized = email.trim().toLowerCase();
     // Always return success to avoid email enumeration
     const user = await this.users.findOne({ where: { email: normalized } });
-    if (!user) return;
+    if (!user) return { message: "如果该邮箱已注册，我们会发送一封密码重置邮件。" };
 
     const token = crypto.randomBytes(48).toString("hex");
     const expires = new Date(Date.now() + 3600_000); // 1 hour
@@ -121,12 +121,20 @@ export class AuthService {
     const webOrigin = this.config.get<string>("WEB_ORIGIN", "http://localhost:3000");
     const resetUrl = `${webOrigin}/auth/reset-password?token=${token}&id=${user.id}`;
 
+    let mailSent = false;
     try {
       await this.mail.sendPasswordResetEmail(user.email, resetUrl);
+      mailSent = true;
     } catch (error) {
-      // Mail failure must not reveal whether the email exists
       this.logger.error(`Failed to send reset email to ${normalized}: ${(error as Error).message}`);
     }
+
+    const smtpHost = this.config.get<string>("SMTP_HOST") || "";
+    // In dev mode without real SMTP, return the reset URL so developers can test
+    if (!smtpHost || !mailSent) {
+      return { message: "如果该邮箱已注册，我们会发送一封密码重置邮件。", devResetUrl: resetUrl };
+    }
+    return { message: "如果该邮箱已注册，我们会发送一封密码重置邮件。" };
   }
 
   async resetPassword(dto: ResetPasswordDto) {

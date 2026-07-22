@@ -54,8 +54,8 @@ export class AuthController {
   @HttpCode(200)
   @Throttle({ default: { limit: 3, ttl: 60000 } })
   async forgotPassword(@Body() input: ForgotPasswordDto) {
-    await this.auth.forgotPassword(input.email);
-    return { success: true, data: { message: "如果该邮箱已注册，我们会发送一封密码重置邮件。" } };
+    const result = await this.auth.forgotPassword(input.email);
+    return { success: true, data: result };
   }
 
   @Post("reset-password")
