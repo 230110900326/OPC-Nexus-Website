@@ -9,7 +9,14 @@ import { ArticleSource } from "../database/entities/article-source.entity";
 import { ContentKeyword } from "../database/entities/content-keyword.entity";
 import { CrawlDiscovery } from "../database/entities/crawl-discovery.entity";
 import { LinkCheck } from "../database/entities/link-check.entity";
+import { Creator } from "../database/entities/creator.entity";
+import { CreatorAccount } from "../database/entities/creator-account.entity";
+import { Video } from "../database/entities/video.entity";
 import { CrawlProcessingService } from "./crawl-processing.service";
 import { CrawlController } from "./crawl.controller";
 import { CrawlService } from "./crawl.service";
-@Module({ imports: [AuthModule, TypeOrmModule.forFeature([CrawlSource, CrawlJob, CrawlLog, CrawlDiscovery, Article, ArticleSource, ContentKeyword, LinkCheck])], controllers: [CrawlController], providers: [CrawlService, CrawlProcessingService] }) export class CrawlModule {}
+import { CrawlerInternalController } from "./crawler-internal.controller";
+import { CrawlerRuntimeService } from "./crawler-runtime.service";
+import { CrawlerTokenGuard } from "./crawler-token.guard";
+import { CrawlerRunnerService } from "./crawler-runner.service";
+@Module({ imports: [AuthModule, TypeOrmModule.forFeature([CrawlSource, CrawlJob, CrawlLog, CrawlDiscovery, Article, ArticleSource, ContentKeyword, LinkCheck, Creator, CreatorAccount, Video])], controllers: [CrawlController, CrawlerInternalController], providers: [CrawlService, CrawlProcessingService, CrawlerRuntimeService, CrawlerTokenGuard, CrawlerRunnerService] }) export class CrawlModule {}

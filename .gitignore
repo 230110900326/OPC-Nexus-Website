@@ -6,6 +6,10 @@ node_modules/
 dist/
 coverage/
 /uploads/
+<<<<<<< HEAD
+=======
+/apps/api/uploads/
+>>>>>>> 3d0134c839e19d4666f30bffabc3529ddc66c8bd
 *.tsbuildinfo
 
 # Python

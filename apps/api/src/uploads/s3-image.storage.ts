@@ -1,18 +1,38 @@
+<<<<<<< HEAD
 import { ConfigService } from "@nestjs/config";
 import { createHash, createHmac } from "node:crypto";
 import { BadGatewayException } from "@nestjs/common";
+=======
+import { BadGatewayException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { createHash, createHmac } from "node:crypto";
+>>>>>>> 3d0134c839e19d4666f30bffabc3529ddc66c8bd
 import { ImageStorage } from "./image-storage.interface";
 
 const hash = (value: string | Buffer) => createHash("sha256").update(value).digest("hex");
 const hmac = (key: string | Buffer, value: string) => createHmac("sha256", key).update(value).digest();
+<<<<<<< HEAD
 export class S3ImageStorage implements ImageStorage {
   constructor(private readonly config: ConfigService) {}
+=======
+
+export class S3ImageStorage implements ImageStorage {
+  constructor(private readonly config: ConfigService) {}
+
+>>>>>>> 3d0134c839e19d4666f30bffabc3529ddc66c8bd
   async put(key: string, data: Buffer, mimeType: string): Promise<string> {
     const endpoint = this.config.getOrThrow<string>("S3_ENDPOINT").replace(/\/$/, "");
     const bucket = this.config.getOrThrow<string>("S3_BUCKET");
     const region = this.config.get<string>("S3_REGION", "auto");
     const url = new URL(`${endpoint}/${encodeURIComponent(bucket)}/${encodeURIComponent(key)}`);
+<<<<<<< HEAD
     const now = new Date(); const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, ""); const date = amzDate.slice(0, 8); const payloadHash = hash(data);
+=======
+    const now = new Date();
+    const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
+    const date = amzDate.slice(0, 8);
+    const payloadHash = hash(data);
+>>>>>>> 3d0134c839e19d4666f30bffabc3529ddc66c8bd
     const signedHeaders = "content-type;host;x-amz-content-sha256;x-amz-date";
     const canonicalHeaders = `content-type:${mimeType}\nhost:${url.host}\nx-amz-content-sha256:${payloadHash}\nx-amz-date:${amzDate}\n`;
     const canonicalRequest = `PUT\n${url.pathname}\n\n${canonicalHeaders}\n${signedHeaders}\n${payloadHash}`;
@@ -22,9 +42,29 @@ export class S3ImageStorage implements ImageStorage {
     const signingKey = hmac(hmac(hmac(hmac(`AWS4${secret}`, date), region), "s3"), "aws4_request");
     const signature = createHmac("sha256", signingKey).update(stringToSign).digest("hex");
     const credential = this.config.getOrThrow<string>("S3_ACCESS_KEY_ID");
+<<<<<<< HEAD
     const response = await fetch(url, { method: "PUT", headers: { "Content-Type": mimeType, "x-amz-content-sha256": payloadHash, "x-amz-date": amzDate, Authorization: `AWS4-HMAC-SHA256 Credential=${credential}/${scope}, SignedHeaders=${signedHeaders}, Signature=${signature}` }, body: new Blob([new Uint8Array(data)], { type: mimeType }) });
     if (!response.ok) throw new BadGatewayException("对象存储上传失败");
     return `${this.config.get<string>("S3_PUBLIC_BASE_URL", `${endpoint}/${bucket}`).replace(/\/$/, "")}/${key}`;
   }
   async read() { return null; }
+=======
+    const response = await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": mimeType,
+        "x-amz-content-sha256": payloadHash,
+        "x-amz-date": amzDate,
+        Authorization: `AWS4-HMAC-SHA256 Credential=${credential}/${scope}, SignedHeaders=${signedHeaders}, Signature=${signature}`,
+      },
+      body: new Blob([new Uint8Array(data)], { type: mimeType }),
+    });
+    if (!response.ok) throw new BadGatewayException("对象存储上传失败");
+    return `${this.config.get<string>("S3_PUBLIC_BASE_URL", `${endpoint}/${bucket}`).replace(/\/$/, "")}/${key}`;
+  }
+
+  async read() {
+    return null;
+  }
+>>>>>>> 3d0134c839e19d4666f30bffabc3529ddc66c8bd
 }

@@ -71,7 +71,12 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in your local .env}
       WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:8080}
       COOKIE_SECURE: "${COOKIE_SECURE:-false}"
+<<<<<<< HEAD
       REFRESH_COOKIE_PATH: "${REFRESH_COOKIE_PATH:-/auth}"
+=======
+      REFRESH_COOKIE_PATH: "${REFRESH_COOKIE_PATH:-/}"
+      CRAWLER_SERVICE_URL: http://crawler:8000
+>>>>>>> 3d0134c839e19d4666f30bffabc3529ddc66c8bd
     ports:
       - "127.0.0.1:${API_PORT:-4000}:4000"
     volumes:
@@ -127,16 +132,21 @@ services:
       args:
         PYTHON_IMAGE: ${PYTHON_IMAGE:-python:3.11-slim}
     restart: unless-stopped
+<<<<<<< HEAD
     init: true
     profiles: ["full"]
     mem_limit: 192m
+=======
+>>>>>>> 3d0134c839e19d4666f30bffabc3529ddc66c8bd
     env_file:
       - ../.env
     environment:
       CRAWLER_HOST: 0.0.0.0
       CRAWLER_PORT: 8000
+      CRAWLER_API_URL: http://api:4000
     ports:
       - "127.0.0.1:${CRAWLER_PORT:-8000}:8000"
+<<<<<<< HEAD
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
       interval: 20s
@@ -183,6 +193,11 @@ services:
     security_opt: ["no-new-privileges:true"]
     logging: *default-logging
 
+=======
+    depends_on:
+      api:
+        condition: service_started
+>>>>>>> 3d0134c839e19d4666f30bffabc3529ddc66c8bd
   gateway:
     image: ${NGINX_IMAGE:-docker.m.daocloud.io/library/nginx:1.27-alpine}
     restart: unless-stopped
