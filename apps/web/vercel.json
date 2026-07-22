@@ -1,0 +1,12 @@
+{
+  "buildCommand": "next build",
+  "outputDirectory": ".next",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_API_BASE_URL": "/api",
+      "NEXT_PUBLIC_SITE_URL": "https://opc-nexus-website-web.vercel.app"
+    }
+  }
+}

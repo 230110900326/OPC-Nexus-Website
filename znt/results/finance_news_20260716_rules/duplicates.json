@@ -1,0 +1,138 @@
+[
+  {
+    "article": {
+      "id": "454",
+      "title": "习近平在上海考察",
+      "url": "https://www.jiemian.com/article/14771156.html",
+      "source": "界面新闻",
+      "publish_time": "2026-07-16T09:36:48.325476",
+      "summary": "",
+      "content": "",
+      "keywords": "",
+      "created_at": "2026-07-16T09:36:48.325476",
+      "row_index": 205,
+      "time_is_fallback": true,
+      "data_quality": "title_only"
+    },
+    "duplicate_of": "616"
+  },
+  {
+    "article": {
+      "id": "114",
+      "title": "国家医保局：2025年全国基本医保参保率巩固在95%",
+      "url": "https://www.nbd.com.cn/articles/2026-07-16/4474146.html",
+      "source": "每经网",
+      "publish_time": "2026-07-16T09:27:57.672239",
+      "summary": "",
+      "content": "",
+      "keywords": "",
+      "created_at": "2026-07-16T09:27:57.672239",
+      "row_index": 545,
+      "time_is_fallback": true,
+      "data_quality": "title_only"
+    },
+    "duplicate_of": "613"
+  },
+  {
+    "article": {
+      "id": "109",
+      "title": "中信证券：当前时点已上市的数据中心REITs值得持续重点关注",
+      "url": "https://www.stcn.com/article/detail/4022169.html",
+      "source": "证券时报",
+      "publish_time": "2026-07-16T09:27:55.710826",
+      "summary": "",
+      "content": "",
+      "keywords": "",
+      "created_at": "2026-07-16T09:27:55.710826",
+      "row_index": 550,
+      "time_is_fallback": true,
+      "data_quality": "title_only"
+    },
+    "duplicate_of": "378"
+  },
+  {
+    "article": {
+      "id": "105",
+      "title": "两市融资余额减少116.66亿元",
+      "url": "https://www.stcn.com/article/detail/4022207.html",
+      "source": "证券时报",
+      "publish_time": "2026-07-16T09:27:55.707369",
+      "summary": "",
+      "content": "",
+      "keywords": "",
+      "created_at": "2026-07-16T09:27:55.707369",
+      "row_index": 554,
+      "time_is_fallback": true,
+      "data_quality": "title_only"
+    },
+    "duplicate_of": "381"
+  },
+  {
+    "article": {
+      "id": "104",
+      "title": "工信部公开征求《大数据产品功能要求》等20项行业标准报批意见",
+      "url": "https://www.stcn.com/article/detail/4022223.html",
+      "source": "证券时报",
+      "publish_time": "2026-07-16T09:27:55.707369",
+      "summary": "",
+      "content": "",
+      "keywords": "大数据",
+      "created_at": "2026-07-16T09:27:55.707369",
+      "row_index": 555,
+      "time_is_fallback": true,
+      "data_quality": "title_only"
+    },
+    "duplicate_of": "379"
+  },
+  {
+    "article": {
+      "id": "85",
+      "title": "中信证券：建议重点关注医疗健康产业投资机会",
+      "url": "https://www.stcn.com/article/detail/4022167.html",
+      "source": "证券时报",
+      "publish_time": "2026-07-16T09:27:54.357859",
+      "summary": "",
+      "content": "",
+      "keywords": "投资",
+      "created_at": "2026-07-16T09:27:54.357859",
+      "row_index": 574,
+      "time_is_fallback": true,
+      "data_quality": "title_only"
+    },
+    "duplicate_of": "383"
+  },
+  {
+    "article": {
+      "id": "5",
+      "title": "一般人代理记账（收入<500万）",
+      "url": "https://www.kuaifawu.com/product/item/info/id/3092.html",
+      "source": "快法务",
+      "publish_time": "2026-07-15T17:26:13.233171",
+      "summary": "",
+      "content": "",
+      "keywords": "",
+      "created_at": "2026-07-15T17:26:13.233171",
+      "row_index": 654,
+      "time_is_fallback": true,
+      "data_quality": "title_only"
+    },
+    "duplicate_of": "6"
+  },
+  {
+    "article": {
+      "id": "3",
+      "title": "小规模代理记账（收入<60万）",
+      "url": "https://www.kuaifawu.com/product/item/info/id/3076.html",
+      "source": "快法务",
+      "publish_time": "2026-07-15T17:26:13.231591",
+      "summary": "",
+      "content": "",
+      "keywords": "",
+      "created_at": "2026-07-15T17:26:13.231591",
+      "row_index": 656,
+      "time_is_fallback": true,
+      "data_quality": "title_only"
+    },
+    "duplicate_of": "4"
+  }
+]

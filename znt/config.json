@@ -1,0 +1,192 @@
+{
+  "topic": {
+    "name": "OPC（一人公司）资讯",
+    "description": "识别一人公司、一人有限责任公司、单一成员公司、单一股东公司及 solo founder/solopreneur 相关的新闻、政策、法规和案例。",
+    "positive_terms": [
+      {"term": "一人有限责任公司", "weight": 15},
+      {"term": "一人公司", "weight": 12},
+      {"term": "单一成员公司", "weight": 12},
+      {"term": "单一股东公司", "weight": 12},
+      {"term": "单人公司", "weight": 10},
+      {"term": "一人企业", "weight": 8},
+      {"term": "one person company", "weight": 12},
+      {"term": "one-person company", "weight": 12},
+      {"term": "single-member company", "weight": 12},
+      {"term": "one-person business", "weight": 10},
+      {"term": "solopreneur", "weight": 9},
+      {"term": "solo founder", "weight": 8},
+      {"term": "一人创业", "weight": 7},
+      {"term": "超级个体", "weight": 6},
+      {"term": "单一股东", "weight": 6},
+      {"term": "唯一股东", "weight": 6},
+      {"term": "个人独资企业", "weight": 5},
+      {"term": "个人独资", "weight": 4},
+      {"term": "OPC", "weight": 4}
+    ],
+    "context_terms": [
+      {"term": "公司法", "weight": 5},
+      {"term": "工商登记", "weight": 4},
+      {"term": "企业登记", "weight": 4},
+      {"term": "市场监管", "weight": 3},
+      {"term": "股东", "weight": 3},
+      {"term": "法人", "weight": 3},
+      {"term": "税务", "weight": 3},
+      {"term": "税收", "weight": 3},
+      {"term": "创业", "weight": 2},
+      {"term": "公司", "weight": 2}
+    ],
+    "negative_terms": [
+      {"term": "OPC UA", "weight": 24},
+      {"term": "OPC DA", "weight": 24},
+      {"term": "Open Platform Communications", "weight": 24},
+      {"term": "工业通信", "weight": 16},
+      {"term": "通信协议", "weight": 16},
+      {"term": "工业自动化", "weight": 14},
+      {"term": "PLC", "weight": 12},
+      {"term": "SCADA", "weight": 12},
+      {"term": "过程控制", "weight": 8}
+    ],
+    "policy_terms": [
+      "政策", "法规", "条例", "办法", "规定", "通知", "意见", "实施细则",
+      "公司法", "税法", "监管", "登记", "注册", "生效", "施行", "修订", "征求意见"
+    ],
+    "ecosystem_dimensions": [
+      {
+        "id": "ai_automation",
+        "label": "AI与自动化",
+        "relation_level": "enabling",
+        "opc_impact": "降低个人公司的技术、人力与内容生产成本，并扩展单人可完成的业务范围",
+        "terms": [
+          {"term": "人工智能", "weight": 7}, {"term": "大模型", "weight": 7},
+          {"term": "智能体", "weight": 8}, {"term": "AI", "weight": 6},
+          {"term": "OpenAI", "weight": 7}, {"term": "AIGC", "weight": 7},
+          {"term": "AI编程", "weight": 8}, {"term": "AI搜索", "weight": 6},
+          {"term": "自动化", "weight": 4}, {"term": "低代码", "weight": 6},
+          {"term": "无代码", "weight": 6}, {"term": "no-code", "weight": 6},
+          {"term": "SaaS", "weight": 5}, {"term": "云服务", "weight": 4},
+          {"term": "数字化工具", "weight": 5}
+        ]
+      },
+      {
+        "id": "solo_business",
+        "label": "创业与个体经营",
+        "relation_level": "operational",
+        "opc_impact": "影响一人公司的创办方式、经营主体选择和个人职业路径",
+        "terms": [
+          {"term": "创业", "weight": 6}, {"term": "创业者", "weight": 7},
+          {"term": "初创", "weight": 6}, {"term": "小微企业", "weight": 8},
+          {"term": "中小企业", "weight": 6}, {"term": "个体工商户", "weight": 8},
+          {"term": "自由职业", "weight": 8}, {"term": "独立开发者", "weight": 9},
+          {"term": "灵活就业", "weight": 6}, {"term": "副业", "weight": 7},
+          {"term": "工作室", "weight": 6}, {"term": "超级个体", "weight": 10},
+          {"term": "solo founder", "weight": 9}, {"term": "solopreneur", "weight": 10}
+        ]
+      },
+      {
+        "id": "growth_channels",
+        "label": "获客与增长渠道",
+        "relation_level": "operational",
+        "opc_impact": "影响一人公司的低成本获客、销售渠道与市场扩张能力",
+        "terms": [
+          {"term": "跨境电商", "weight": 8}, {"term": "电商", "weight": 6},
+          {"term": "获客", "weight": 8}, {"term": "营销", "weight": 6},
+          {"term": "私域", "weight": 7}, {"term": "流量", "weight": 4},
+          {"term": "直播带货", "weight": 6}, {"term": "内容创业", "weight": 8},
+          {"term": "自媒体", "weight": 7}, {"term": "短视频", "weight": 4},
+          {"term": "出海", "weight": 5}, {"term": "平台规则", "weight": 6},
+          {"term": "广告投放", "weight": 6}
+        ]
+      },
+      {
+        "id": "policy_compliance",
+        "label": "注册、税务与合规",
+        "relation_level": "operational",
+        "opc_impact": "影响一人公司的注册门槛、税务成本、用工方式和合规风险",
+        "terms": [
+          {"term": "公司法", "weight": 9}, {"term": "工商登记", "weight": 9},
+          {"term": "企业登记", "weight": 8}, {"term": "注册公司", "weight": 8},
+          {"term": "营商环境", "weight": 6}, {"term": "税收优惠", "weight": 8},
+          {"term": "税务", "weight": 6}, {"term": "发票", "weight": 6},
+          {"term": "社保", "weight": 4}, {"term": "灵活用工", "weight": 8},
+          {"term": "数据合规", "weight": 7}, {"term": "个人信息", "weight": 4},
+          {"term": "知识产权", "weight": 6}, {"term": "监管法规", "weight": 7},
+          {"term": "新规", "weight": 5}, {"term": "政策", "weight": 3}
+        ]
+      },
+      {
+        "id": "finance_capital",
+        "label": "融资与经营资金",
+        "relation_level": "contextual",
+        "opc_impact": "影响个人创业者获得启动资金、信贷和现金流支持的条件",
+        "terms": [
+          {"term": "小微贷款", "weight": 8}, {"term": "普惠金融", "weight": 7},
+          {"term": "创业融资", "weight": 7}, {"term": "创业投资", "weight": 6},
+          {"term": "天使投资", "weight": 5}, {"term": "众筹", "weight": 5},
+          {"term": "融资", "weight": 3}, {"term": "信贷", "weight": 3},
+          {"term": "利率", "weight": 2}, {"term": "货币政策", "weight": 2}
+        ]
+      },
+      {
+        "id": "productivity_tools",
+        "label": "经营效率工具",
+        "relation_level": "enabling",
+        "opc_impact": "帮助单人经营者以工具替代部分团队职能，提高日常运营效率",
+        "terms": [
+          {"term": "协作工具", "weight": 6}, {"term": "生产力工具", "weight": 7},
+          {"term": "办公软件", "weight": 5}, {"term": "企业服务", "weight": 4},
+          {"term": "财税软件", "weight": 7}, {"term": "CRM", "weight": 5},
+          {"term": "ERP", "weight": 4}, {"term": "智能客服", "weight": 6}
+        ]
+      },
+      {
+        "id": "market_opportunity",
+        "label": "商业模式与市场机会",
+        "relation_level": "contextual",
+        "opc_impact": "帮助一人公司识别可由个人切入的新需求、商业模式和细分市场",
+        "terms": [
+          {"term": "商业模式", "weight": 5}, {"term": "平台经济", "weight": 5},
+          {"term": "新职业", "weight": 5}, {"term": "行业机会", "weight": 4},
+          {"term": "消费趋势", "weight": 3}, {"term": "创作者经济", "weight": 7},
+          {"term": "知识付费", "weight": 6}
+        ]
+      }
+    ]
+  },
+  "scoring": {
+    "field_weights": {
+      "title": 2.0,
+      "keywords": 1.4,
+      "summary": 1.2,
+      "content": 1.0
+    },
+    "relevant_threshold": 18.0,
+    "review_threshold": 8.0
+  },
+  "processing": {
+    "max_content_chars_for_llm": 12000,
+    "llm_scope": "candidates",
+    "request_timeout_seconds": 90,
+    "request_retries": 2,
+    "fetch_timeout_seconds": 12,
+    "fetch_retries": 1,
+    "fetch_workers": 6,
+    "fetch_max_bytes": 2097152,
+    "fetch_scope": "all"
+  },
+  "heat": {
+    "hot_threshold": 30,
+    "source_scores": {
+      "证券时报": 12, "第一财经": 12, "中国经济网": 11, "中国证券报": 11,
+      "界面新闻": 10, "36氪": 10, "虎嗅": 10, "创业邦": 9,
+      "投资界": 9, "21世纪经济报道": 11, "每经网": 10, "凤凰财经": 9,
+      "i黑马": 8, "快法务": 8, "搜狐财经": 7, "和讯网": 8
+    },
+    "event_terms": ["独家", "重磅", "突发", "最新", "正式", "首次", "发布", "新规", "融资", "生效"]
+  },
+  "llm": {
+    "provider": "none",
+    "model": "",
+    "openai_base_url": "https://api.openai.com/v1/chat/completions",
+    "ollama_base_url": "http://localhost:11434/api/chat"
+  }
+}

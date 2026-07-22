@@ -1,0 +1,34 @@
+# Copy the TLS server block into nginx.conf after a real domain and certificate are available.
+# Replace example.com and mount the certificate directory read-only into the gateway container.
+server {
+  listen 80;
+  server_name example.com www.example.com;
+  location /.well-known/acme-challenge/ { root /var/www/certbot; }
+  location / { return 301 https://$host$request_uri; }
+}
+
+server {
+  listen 443 ssl http2;
+  server_name example.com www.example.com;
+  ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
+  ssl_protocols TLSv1.2 TLSv1.3;
+  ssl_session_cache shared:SSL:10m;
+  ssl_session_timeout 1d;
+  ssl_session_tickets off;
+  add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+  client_max_body_size 6m;
+  location /api/ {
+    proxy_pass http://api:4000/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  }
+  location / {
+    proxy_pass http://web:3000;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  }
+}

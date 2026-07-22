@@ -1,7 +1,7 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Post } from "./post.entity";
 import { User } from "./user.entity";
-export enum CommentStatus { PUBLISHED = "published", HIDDEN = "hidden", DELETED = "deleted" }
+export enum CommentStatus { REVIEW = "review", PUBLISHED = "published", HIDDEN = "hidden", DELETED = "deleted" }
 @Entity({ name: "comments" })
 export class Comment {
   @PrimaryGeneratedColumn("uuid") id!: string;

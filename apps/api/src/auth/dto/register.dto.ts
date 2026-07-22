@@ -1,4 +1,4 @@
-import { IsEmail, IsString, Length, Matches } from "class-validator";
+import { IsEmail, IsIn, IsOptional, IsString, Length, Matches } from "class-validator";
 
 export class RegisterDto {
   @IsEmail()
@@ -13,4 +13,29 @@ export class RegisterDto {
   @IsString()
   @Length(2, 60)
   displayName!: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(["user", "researcher"])
+  role?: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(2, 120)
+  company?: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(2, 80)
+  jobTitle?: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(2, 80)
+  industry?: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(10, 280)
+  bio?: string;
 }

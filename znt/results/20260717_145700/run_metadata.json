@@ -1,0 +1,28 @@
+{
+  "agent_version": "2.0.1",
+  "generated_at": "2026-07-17T15:20:54.981165+08:00",
+  "input_file": "C:\\Users\\wo\\Desktop\\pc\\exports\\finance_news_all_20260717_144513.json",
+  "input_sha256": "8368b6c291a5b6a59ca41e8e89cb185e45b398e8f69128f0aaf1db77300eb135",
+  "input_count": 1000,
+  "unique_count": 969,
+  "duplicate_count": 31,
+  "title_only_count": 127,
+  "provider": "none",
+  "model": null,
+  "llm_calls": 0,
+  "page_fetch": {
+    "requested": 969,
+    "success": 902,
+    "failed": 67,
+    "cache_hits": 483
+  },
+  "hot_threshold": 30,
+  "hot_count": 128,
+  "verified_hot_count": 32,
+  "source_metadata": {
+    "export_time": "2026-07-17T14:45:13.778251",
+    "source_filter": "all",
+    "total": 1000,
+    "article_array_field": "articles"
+  }
+}

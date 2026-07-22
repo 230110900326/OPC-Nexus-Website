@@ -5,7 +5,7 @@ node_modules/
 .next/
 dist/
 coverage/
-uploads/
+/uploads/
 *.tsbuildinfo
 
 # Python
@@ -28,3 +28,5 @@ redis-data/
 .claude/
 .idea/
 .vscode/
+
+.vercel

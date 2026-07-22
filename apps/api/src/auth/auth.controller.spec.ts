@@ -13,8 +13,8 @@ function cookieOptions(controller: AuthController) {
 }
 
 describe("AuthController refresh cookie", () => {
-  it("defaults to a gateway-compatible root path", () => {
-    expect(cookieOptions(controllerFor({ NODE_ENV: "development" }))).toEqual(expect.objectContaining({ httpOnly: true, sameSite: "lax", secure: false, path: "/" }));
+  it("defaults to a narrow strict-same-site refresh cookie", () => {
+    expect(cookieOptions(controllerFor({ NODE_ENV: "development" }))).toEqual(expect.objectContaining({ httpOnly: true, sameSite: "strict", secure: false, path: "/auth" }));
   });
 
   it("allows local Docker to disable secure cookies explicitly", () => {

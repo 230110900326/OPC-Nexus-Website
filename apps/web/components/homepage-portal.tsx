@@ -1,11 +1,58 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { FeedItem } from "../lib/ranking";
 import { HomepageCreator, HomepageData, HomepageEvent, HomepageModule, HomepagePublicConfig, getHomepage, trackRecommendation } from "../lib/operations";
 
 const contentLabels: Record<FeedItem["contentType"], string> = { article: "资讯", policy: "政策", video: "视频", post: "社区", demand: "需求" };
+
+function HeroCarousel({ items }: { items: FeedItem[] }) {
+  const [current, setCurrent] = useState(0);
+  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const len = items.length;
+
+  const go = useCallback((index: number) => setCurrent((index + len) % len), [len]);
+
+  const startTimer = useCallback(() => {
+    if (timer.current) clearInterval(timer.current);
+    timer.current = setInterval(() => setCurrent((prev) => (prev + 1) % len), 5000);
+  }, [len]);
+
+  const stopTimer = useCallback(() => { if (timer.current) { clearInterval(timer.current); timer.current = null; } }, []);
+
+  useEffect(() => { if (len <= 1) return; startTimer(); return stopTimer; }, [len, startTimer, stopTimer]);
+
+  if (!len) return null;
+
+  return (
+    <div className="hero-carousel" onMouseEnter={stopTimer} onMouseLeave={startTimer}>
+      <div className="hero-carousel-track" style={{ transform: `translateX(-${current * 100}%)` }}>
+        {items.map((item, index) => (
+          <SmartLink href={item.url} key={`${item.contentType}-${item.id}`} className="hero-carousel-slide" onClick={() => void trackRecommendation([], "click").catch(() => undefined)}>
+            <div className="hero-carousel-slide-bg" style={item.coverImageUrl ? { backgroundImage: `url(${item.coverImageUrl})` } : undefined} />
+            <div className="hero-carousel-slide-body">
+              <p className="eyebrow">{contentLabels[item.contentType]} · {item.industry ?? "综合"}{item.source ? ` · ${item.source}` : ""}</p>
+              <h2>{item.title}</h2>
+              {item.excerpt && <p>{item.excerpt}</p>}
+            </div>
+          </SmartLink>
+        ))}
+      </div>
+      {len > 1 && (
+        <>
+          <button className="hero-carousel-arrow" aria-label="上一张" onClick={() => go(current - 1)}>‹</button>
+          <button className="hero-carousel-arrow" aria-label="下一张" onClick={() => go(current + 1)}>›</button>
+          <div className="hero-carousel-controls">
+            {items.map((_, index) => (
+              <button key={index} className={`hero-carousel-dot${index === current ? " active" : ""}`} aria-label={`第 ${index + 1} 张`} onClick={() => go(index)} />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 export function HomepagePortal() {
   const [data, setData] = useState<HomepageData | null>(null);
@@ -33,15 +80,11 @@ export function HomepagePortal() {
   if (loading) return <main className="opc-home"><div className="home-loading"><span /><p>正在编排今日财经信号…</p></div></main>;
   if (error || !data) return <main className="opc-home"><div className="home-failure" role="alert"><p className="eyebrow">HOMEPAGE SIGNAL INTERRUPTED</p><h1>首页内容未能接通。</h1><p>{error || "首页聚合接口没有返回数据。"}</p><button onClick={() => void load()}>重新加载</button></div></main>;
 
-  const focus = data.banners[0];
-  const fallback = data.sections.recommendations[0];
   const signals = data.sections.recommendations.slice(0, 4);
+  const carouselItems = (() => { const withCover = data.sections.recommendations.filter((item) => item.coverImageUrl); return (withCover.length ? withCover : data.sections.recommendations).slice(0, 5); })();
   return <main className="opc-home">
     <section className="home-focus">
-      <div className="home-focus-copy">
-        <p className="eyebrow">OPC DAILY CAPITAL SIGNAL · {formatDay(data.generatedAt)}</p>
-        {focus ? <><h1>{focus.title}</h1><p>{focus.subtitle || "由 OPC 运营台选定的今日焦点内容。"}</p><TrackedLink item={focus}>查看今日焦点 <span>↗</span></TrackedLink></> : fallback ? <><h1>{fallback.title}</h1><p>{fallback.excerpt}</p><SmartLink href={fallback.url}>继续阅读 <span>↗</span></SmartLink></> : <><h1>把下一步判断，建立在可靠信号上。</h1><p>今日焦点正在编排。你仍可从资讯、政策、视频与社区模块继续浏览。</p><Link className="focus-action" href="/discover">前往推荐页 <span>→</span></Link></>}
-      </div>
+      <HeroCarousel items={carouselItems} />
       <aside className="capital-signal-band" aria-label="今日资本信号带">
         <header><span>实时信号带</span><time>{new Date(data.generatedAt).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}</time></header>
         {signals.map((item, index) => <SmartLink href={item.url} key={`${item.contentType}-${item.id}`}><b>{String(index + 1).padStart(2, "0")}</b><span><small>{contentLabels[item.contentType]} · {item.industry ?? "综合"}</small>{item.title}</span><em>{item.heat.toFixed(1)}</em></SmartLink>)}
@@ -70,15 +113,44 @@ function HomepageSection({ module, data }: { module: HomepageModule; data: Homep
 
 function SectionHeading({ index, title, href, link }: { index: string; title: string; href: string; link: string }) { return <header className="home-section-heading"><div><span>{index}</span><h2>{title}</h2></div><Link href={href}>{link} →</Link></header>; }
 
-function RecommendationSection({ title, items }: { title: string; items: FeedItem[] }) { return <section className="home-section recommendation-section"><SectionHeading index="SIGNAL / FEED" title={title} href="/discover" link="完整推荐" />{items.length ? <div className="recommendation-ledger">{items.map((item, index) => <article key={`${item.contentType}-${item.id}`}><span className="ledger-index">{String(index + 1).padStart(2, "0")}</span><div><p>{contentLabels[item.contentType]} · {item.reason}</p><h3><SmartLink href={item.url}>{item.title}</SmartLink></h3><small>{item.source} · {formatDate(item.publishedAt)}</small></div><strong>{item.heat.toFixed(1)}</strong></article>)}</div> : <EmptyState text="推荐队列暂无内容" help="已发布内容完成热度计算后会自动进入这里。" />}</section>; }
+function RecommendationSection({ title, items }: { title: string; items: FeedItem[] }) { return <section className="home-section"><SectionHeading index="SIGNAL / FEED" title={title} href="/discover" link="完整推荐" />{items.length ? <div className="home-card-list">{items.map((item) => <ContentRowCard key={`${item.contentType}-${item.id}`} item={item} />)}</div> : <EmptyState text="推荐队列暂无内容" help="已发布内容完成热度计算后会自动进入这里。" />}</section>; }
 
-function PolicySection({ title, items }: { title: string; items: FeedItem[] }) { return <section className="home-section policy-section"><SectionHeading index="POLICY / RADAR" title={title} href="/policies" link="政策频道" />{items.length ? <div className="policy-grid">{items.map((item, index) => <article key={item.id}><span>{String(index + 1).padStart(2, "0")}</span><p>{item.industry ?? "综合政策"}</p><h3><SmartLink href={item.url}>{item.title}</SmartLink></h3><small>{item.source} · {formatDate(item.publishedAt)}</small></article>)}</div> : <EmptyState text="暂时没有政策精选" help="发布政策内容后，本模块会按热度自动补位。" />}</section>; }
+function PolicySection({ title, items }: { title: string; items: FeedItem[] }) { return <section className="home-section"><SectionHeading index="POLICY / RADAR" title={title} href="/policies" link="政策频道" />{items.length ? <div className="home-card-list">{items.map((item) => <ContentRowCard key={item.id} item={item} />)}</div> : <EmptyState text="暂时没有政策精选" help="发布政策内容后，本模块会按热度自动补位。" />}</section>; }
 
 function VideoSection({ title, items }: { title: string; items: FeedItem[] }) { return <section className="home-section video-section"><SectionHeading index="VIDEO / WATCH" title={title} href="/videos" link="视频频道" />{items.length ? <div className="video-feature-grid">{items.map((item, index) => <article className={index === 0 ? "featured" : ""} key={item.id}><SmartLink href={item.url}><div className="video-cover" style={item.coverImageUrl ? { backgroundImage: `url(${item.coverImageUrl})` } : undefined}><span>PLAY</span><em>{item.heat.toFixed(1)}</em></div><p>{item.source}</p><h3>{item.title}</h3></SmartLink></article>)}</div> : <EmptyState text="热门视频仍在同步" help="授权视频入库并完成指标同步后会显示在这里。" />}</section>; }
 
-function DiscussionSection({ title, items }: { title: string; items: FeedItem[] }) { return <section className="home-section discussion-section"><SectionHeading index="COMMUNITY / TALK" title={title} href="/community" link="进入社区" />{items.length ? <div className="discussion-list">{items.map((item, index) => <article key={item.id}><b>{String(index + 1).padStart(2, "0")}</b><div><p>{item.industry ?? "社区讨论"} · 热度 {item.heat.toFixed(1)}</p><h3><SmartLink href={item.url}>{item.title}</SmartLink></h3><small>{item.excerpt}</small></div></article>)}</div> : <EmptyState text="社区还没有升温的话题" help="新讨论发布后会按真实互动进入这里。" />}</section>; }
+function DiscussionSection({ title, items }: { title: string; items: FeedItem[] }) { return <section className="home-section"><SectionHeading index="COMMUNITY / TALK" title={title} href="/community" link="进入社区" />{items.length ? <div className="home-card-list">{items.map((item) => <ContentRowCard key={item.id} item={item} />)}</div> : <EmptyState text="社区还没有升温的话题" help="新讨论发布后会按真实互动进入这里。" />}</section>; }
 
-function EventSection({ title, items }: { title: string; items: HomepageEvent[] }) { return <section className="home-section event-section"><SectionHeading index="EVENT / CALENDAR" title={title} href="/events" link="全部活动" />{items.length ? <div className="event-timeline">{items.map((item) => <article key={item.id}><time><strong>{new Date(item.startsAt).toLocaleDateString("zh-CN", { day: "2-digit" })}</strong><span>{new Date(item.startsAt).toLocaleDateString("zh-CN", { month: "short" })}</span></time><div><p>{item.locationName} · {item.registrationCount}{item.capacity ? ` / ${item.capacity}` : ""} 人</p><h3><Link href={item.url}>{item.title}</Link></h3><small>{item.organizer.displayName}</small></div></article>)}</div> : <EmptyState text="近期没有已发布活动" help="运营人员发布活动后，会按开始时间显示在这里。" />}</section>; }
+function ContentRowCard({ item }: { item: FeedItem }) {
+  return (
+    <article className="home-card">
+      <SmartLink href={item.url} className="home-card-image">
+        {item.coverImageUrl ? (
+          <img src={item.coverImageUrl} alt="" loading="lazy" />
+        ) : (
+          <span className="home-card-image-placeholder">{contentLabels[item.contentType]}</span>
+        )}
+      </SmartLink>
+      <div className="home-card-body">
+        <p className="home-card-eyebrow">
+          <span>{contentLabels[item.contentType]}</span>
+          <span className="home-card-sep">·</span>
+          <span>{item.industry ?? "综合"}</span>
+          {item.reason && <><span className="home-card-sep">·</span><span>{item.reason}</span></>}
+        </p>
+        <h3><SmartLink href={item.url}>{item.title}</SmartLink></h3>
+        {item.excerpt && <p className="home-card-excerpt">{item.excerpt}</p>}
+        <footer className="home-card-footer">
+          {item.source && <span>{item.source}</span>}
+          <span>{formatDate(item.publishedAt)}</span>
+          <span>热度 {item.heat.toFixed(1)}</span>
+        </footer>
+      </div>
+    </article>
+  );
+}
+
+function EventSection({ title, items }: { title: string; items: HomepageEvent[] }) { return <section className="home-section event-section"><SectionHeading index="EVENT / CALENDAR" title={title} href="/events" link="全部活动" />{items.length ? <div className="event-timeline">{items.map((item) => { const d = new Date(item.startsAt); return <article key={item.id}><time><span className="event-month">{new Intl.DateTimeFormat("zh-CN",{month:"short"}).format(d)}</span><strong className="event-day">{new Intl.DateTimeFormat("zh-CN",{day:"2-digit"}).format(d)}</strong></time><div className="event-info"><p className="event-meta-line"><span>{item.locationName}</span><span className="event-meta-sep">·</span><span>{item.registrationCount}{item.capacity ? ` / ${item.capacity}` : ""} 人已报名</span></p><h3><Link href={item.url}>{item.title}</Link></h3><small>{item.organizer.displayName}</small></div></article>; })}</div> : <EmptyState text="近期没有已发布活动" help="运营人员发布活动后，会按开始时间显示在这里。" />}</section>; }
 
 function CreatorSection({ title, items }: { title: string; items: HomepageCreator[] }) { return <section className="home-section creator-section"><SectionHeading index="CREATOR / DESK" title={title} href="/videos" link="查看内容" />{items.length ? <div className="creator-roster">{items.map((item) => <article key={item.id}>{item.avatarUrl ? <img src={item.avatarUrl} alt="" /> : <span>{item.name.slice(0, 1)}</span>}<div><h3>{item.name}</h3><p>{item.industries.join(" · ") || "综合财经"}</p><small>信任等级 {item.trustLevel} · {item.platforms.join(" / ") || "站内作者"}</small></div></article>)}</div> : <EmptyState text="暂无可推荐作者" help="完成创作者授权并启用账号后会显示在这里。" />}</section>; }
 

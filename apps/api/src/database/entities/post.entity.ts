@@ -2,7 +2,7 @@ import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToO
 import { ForumSection } from "./forum-section.entity";
 import { User } from "./user.entity";
 import { Comment } from "./comment.entity";
-export enum PostStatus { DRAFT = "draft", PUBLISHED = "published", HIDDEN = "hidden" }
+export enum PostStatus { DRAFT = "draft", REVIEW = "review", PUBLISHED = "published", HIDDEN = "hidden" }
 @Entity({ name: "posts" })
 export class Post {
   @PrimaryGeneratedColumn("uuid") id!: string;

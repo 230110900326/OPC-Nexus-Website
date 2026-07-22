@@ -2,7 +2,7 @@ import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { ThrottlerGuard } from "@nestjs/throttler";
-import { APP_GUARD } from "@nestjs/core";
+import { APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import * as Joi from "joi";
 import { AuthModule } from "./auth/auth.module";
@@ -58,6 +58,7 @@ import { DemandBoardConfig } from "./database/entities/demand-board-config.entit
 import { OpcDemandConnect } from "./database/entities/opc-demand-connect.entity";
 import { OpcDemand } from "./database/entities/opc-demand.entity";
 import { DemandsModule } from "./demands/demands.module";
+import { RequestLoggingInterceptor } from "./common/request-logging.interceptor";
 
 @Module({
   imports: [
@@ -98,6 +99,9 @@ import { DemandsModule } from "./demands/demands.module";
     DemandsModule,
   ],
   controllers: [HealthController],
-  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
+  providers: [
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_INTERCEPTOR, useClass: RequestLoggingInterceptor },
+  ],
 })
 export class AppModule {}

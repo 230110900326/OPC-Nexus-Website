@@ -29,14 +29,60 @@ export class AuthService {
   async register(input: RegisterDto) {
     const email = input.email.trim().toLowerCase();
     if (await this.users.exists({ where: { email } })) throw new ConflictException("该邮箱已注册");
+
+    const role = input.role || "user";
+
+    // Block public operator registration — operators are pre-seeded or promoted by admins
+    if (role === "operator") throw new BadRequestException("运营账号不可通过公开注册创建");
+
+    if (role === "researcher") {
+      // Validate researcher required fields
+      if (!input.company?.trim() || !input.jobTitle?.trim() || !input.industry?.trim() || !input.bio?.trim()) {
+        throw new BadRequestException("产业研究员注册需填写公司、职位、行业及认证说明");
+      }
+    }
+
     const userRole = await this.roles.findOneByOrFail({ name: SystemRole.USER });
-    const user = this.users.create({ email, displayName: input.displayName.trim(), passwordHash: await bcrypt.hash(input.password, 12), roles: [userRole] });
+
+    const user = this.users.create({
+      email,
+      displayName: input.displayName.trim(),
+      passwordHash: await bcrypt.hash(input.password, 12),
+      roles: [userRole],
+      isActive: role !== "researcher",
+      certificationStatus: role === "researcher" ? "pending" : null,
+      company: input.company?.trim() || null,
+      jobTitle: input.jobTitle?.trim() || null,
+      industry: input.industry?.trim() || null,
+      bio: input.bio?.trim() || null,
+    });
+
+    if (role === "researcher") {
+      const researcherRole = await this.roles.findOneByOrFail({ name: SystemRole.RESEARCHER });
+      user.roles.push(researcherRole);
+    }
+
     return this.issueSession(await this.users.save(user));
   }
 
   async login(input: LoginDto) {
-    const user = await this.users.createQueryBuilder("user").addSelect("user.passwordHash").leftJoinAndSelect("user.roles", "role").where("user.email = :email", { email: input.email.trim().toLowerCase() }).getOne();
-    if (!user || !user.isActive || !(await bcrypt.compare(input.password, user.passwordHash))) throw new UnauthorizedException("邮箱或密码不正确");
+    const user = await this.users.createQueryBuilder("user")
+      .addSelect("user.passwordHash")
+      .addSelect("user.certificationStatus")
+      .addSelect("user.banReason")
+      .leftJoinAndSelect("user.roles", "role")
+      .where("user.email = :email", { email: input.email.trim().toLowerCase() })
+      .getOne();
+
+    if (!user || !(await bcrypt.compare(input.password, user.passwordHash))) {
+      throw new UnauthorizedException("邮箱或密码不正确");
+    }
+
+    if (!user.isActive) {
+      if (user.certificationStatus === "pending") throw new UnauthorizedException("你的账号正在审核中，审核通过后即可登录");
+      if (user.certificationStatus === "rejected") throw new UnauthorizedException(`你的产业研究员认证未通过${user.banReason ? `：${user.banReason}` : "，如有疑问请联系运营"}`);
+      throw new UnauthorizedException("该账号已被禁用");
+    }
     const session = await this.issueSession(user);
     if (user.roles.some((role) => role.name !== SystemRole.USER)) await this.audit.record({ actor: user, action: AuditAction.ADMIN_LOGIN, targetType: "session", metadata: { roles: user.roles.map((role) => role.name) } });
     return session;
@@ -94,6 +140,7 @@ export class AuthService {
 
     await this.users.update(user.id, {
       passwordHash: await bcrypt.hash(dto.password, 12),
+      refreshTokenHash: null,
       passwordResetToken: null,
       passwordResetExpires: null,
     });
@@ -112,6 +159,6 @@ export class AuthService {
 
   public publicUser(user: User) {
     const { passwordHash: _, refreshTokenHash: __, banReason: ___, bannedAt: ____, ...safeUser } = user;
-    return { ...safeUser, roles: user.roles?.map((role) => role.name) ?? [] };
+    return { ...safeUser, roles: user.roles?.map((role) => role.name) ?? [], certificationStatus: user.certificationStatus ?? null };
   }
 }

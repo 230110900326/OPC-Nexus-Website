@@ -30,6 +30,8 @@ const footerGroups = [
       ["用户协议", "/terms"],
       ["隐私政策", "/privacy"],
       ["社区规范", "/community/rules"],
+      ["版权投诉", "/copyright"],
+      ["财经免责声明", "/disclaimer"],
       ["需求服务规范", "/demands/rules"],
     ],
   },
@@ -81,6 +83,11 @@ export function SiteFooter() {
         <nav className="site-footer-directory" aria-label="页脚导航">
           {footerGroups.map((group) => <FooterDirectoryGroup group={group} key={group.title} />)}
         </nav>
+        <div className="site-footer-qr">
+          <p className="footer-qr-label">扫码入群</p>
+          <img src="/community-qr.png" alt="社群二维码" className="footer-qr-image" />
+          <p className="footer-qr-hint">加入 OPC Nexus 社群<br />获取活动与洞察更新</p>
+        </div>
         <div className="site-footer-bottom">
           <p>© 2026 OPC Nexus</p>
           <p>财经产业社群 · 保留不同判断</p>

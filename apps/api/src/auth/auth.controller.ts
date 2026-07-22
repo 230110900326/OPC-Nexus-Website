@@ -74,6 +74,6 @@ export class AuthController {
   private cookieOptions(): CookieOptions {
     const configuredSecure = this.config.get<boolean | string>("COOKIE_SECURE");
     const secure = configuredSecure === undefined ? this.config.get<string>("NODE_ENV") === "production" : configuredSecure === true || configuredSecure === "true";
-    return { httpOnly: true, sameSite: "lax", secure, path: this.config.get<string>("REFRESH_COOKIE_PATH")?.trim() || "/" };
+    return { httpOnly: true, sameSite: "strict", secure, path: this.config.get<string>("REFRESH_COOKIE_PATH")?.trim() || "/auth" };
   }
 }

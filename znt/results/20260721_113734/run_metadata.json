@@ -1,0 +1,28 @@
+{
+  "agent_version": "2.0.1",
+  "generated_at": "2026-07-21T11:38:29.797472+08:00",
+  "input_file": "E:\\OPC Nexus Website\\pc\\exports\\finance_news_all_20260721_113325.json",
+  "input_sha256": "06040af3c6db40cb06c404b7d4a18f22eafdf9e141bcb10cfde050be4a5dbcdc",
+  "input_count": 1000,
+  "unique_count": 942,
+  "duplicate_count": 58,
+  "title_only_count": 126,
+  "provider": "none",
+  "model": null,
+  "llm_calls": 0,
+  "page_fetch": {
+    "requested": 942,
+    "success": 941,
+    "failed": 1,
+    "cache_hits": 0
+  },
+  "hot_threshold": 30,
+  "hot_count": 167,
+  "verified_hot_count": 31,
+  "source_metadata": {
+    "export_time": "2026-07-21T11:33:25.118221",
+    "source_filter": "all",
+    "total": 1000,
+    "article_array_field": "articles"
+  }
+}

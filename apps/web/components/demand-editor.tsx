@@ -54,8 +54,9 @@ export function DemandEditor({ edit = false }: { edit?: boolean }) {
   }
 
   return <main className="demand-editor-page">
-    <header><Link className="brand" href="/demands"><span className="brand-mark">OPC</span><span>NEXUS</span></Link><Link href="/demands">退出编辑</Link></header>
+    <header><Link className="brand" href="/demands"><span className="brand-mark">OPC</span><span>NEXUS</span></Link></header>
     <section className="demand-editor-shell">
+      <Link className="demand-exit" href="/demands">← 退出编辑</Link>
       <div className="demand-editor-heading"><div><p className="eyebrow">{edit ? "REVISE REQUEST" : "NEW MATCHING REQUEST"}</p><h1>{edit ? "编辑需求工单" : "发布一条清晰的需求"}</h1></div><p>具体的交付物，比宽泛的“找合作”更容易收到有效回应。联系方式只会向登录用户展示。</p></div>
       <form className="demand-form" onSubmit={save}>
         <section className="demand-form-main">

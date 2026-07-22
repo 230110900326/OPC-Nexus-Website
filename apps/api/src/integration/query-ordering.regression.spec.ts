@@ -52,7 +52,7 @@ describe("TypeORM joined pagination ordering regressions", () => {
 
     const postQuery = queryBuilder();
     const posts = { createQueryBuilder: jest.fn(() => postQuery) } as unknown as Repository<Post>;
-    const forumService = new ForumService({} as Repository<ForumSection>, posts, {} as Repository<Comment>, { create: jest.fn() } as never, { recordDelta: jest.fn() } as never);
+    const forumService = new ForumService({} as Repository<ForumSection>, posts, {} as Repository<Comment>, {} as never, { create: jest.fn() } as never, { recordDelta: jest.fn() } as never);
     await forumService.listPosts({ sort: "latest", page: 1, limit: 20 });
     expect(postQuery.orderBy).toHaveBeenCalledWith("post.isPinned", "DESC");
     expect(postQuery.addOrderBy).toHaveBeenCalledWith("post.createdAt", "DESC");

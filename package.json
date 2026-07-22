@@ -15,7 +15,9 @@
     "lint": "npm run lint --workspaces --if-present",
     "docker:up": "docker compose --env-file .env -f infra/docker-compose.yml up -d --build",
     "docker:down": "docker compose --env-file .env -f infra/docker-compose.yml down",
-    "docker:logs": "docker compose --env-file .env -f infra/docker-compose.yml logs -f"
+    "docker:logs": "docker compose --env-file .env -f infra/docker-compose.yml logs -f",
+    "release:check": "node infra/scripts/release-check.mjs",
+    "smoke": "node infra/scripts/smoke-test.mjs"
   },
   "engines": {
     "node": ">=22.0.0",

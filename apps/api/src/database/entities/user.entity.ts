@@ -42,6 +42,9 @@ export class User {
   @Column({ name: "password_reset_expires", type: "timestamptz", nullable: true })
   passwordResetExpires!: Date | null;
 
+  @Column({ name: "certification_status", type: "varchar", length: 16, nullable: true })
+  certificationStatus!: "pending" | "approved" | "rejected" | null;
+
   @Column({ name: "ban_reason", type: "varchar", length: 500, nullable: true })
   banReason!: string | null;
 

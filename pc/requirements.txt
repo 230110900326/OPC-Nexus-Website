@@ -1,0 +1,24 @@
+# 财经新闻爬虫 (Scrapy版) - 依赖清单
+# Scrapy 框架
+scrapy>=2.11.0
+
+# HTML 解析（Spider中使用）
+beautifulsoup4>=4.12.0
+lxml>=5.2.0
+
+# RSS 解析
+feedparser>=6.0.0
+
+# 数据库 ORM
+sqlalchemy>=2.0.0
+pymysql>=1.1.0
+psycopg2-binary>=2.9.0
+
+# 定时任务（保留用于 --schedule）
+apscheduler>=3.10.0
+
+# 日志（run.py 使用）
+loguru>=0.7.0
+
+# 日期处理
+python-dateutil>=2.9.0

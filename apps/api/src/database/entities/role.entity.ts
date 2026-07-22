@@ -3,6 +3,7 @@ import { Permission } from "./permission.entity";
 
 export enum SystemRole {
   USER = "user",
+  RESEARCHER = "researcher",
   EDITOR = "editor",
   MODERATOR = "moderator",
   OPERATOR = "operator",
