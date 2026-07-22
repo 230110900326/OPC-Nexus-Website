@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createDemoSession, DEMO_ACCOUNTS, signIn } from "../../lib/auth";
@@ -8,6 +8,74 @@ import { BrandLogo } from "../../components/brand-logo";
 
 type AuthMode = "login" | "register" | "forgot" | "demo";
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000";
+
+function useCooldown(seconds: number) {
+  const [remaining, setRemaining] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const start = useCallback(() => {
+    setRemaining(seconds);
+    timerRef.current = setInterval(() => setRemaining((prev) => {
+      if (prev <= 1) { if (timerRef.current) clearInterval(timerRef.current); return 0; }
+      return prev - 1;
+    }), 1000);
+  }, [seconds]);
+  useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
+  return { remaining, start, active: remaining > 0 };
+}
+
+function ForgotPasswordForm() {
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [pending, setPending] = useState(false);
+  const { remaining, start, active } = useCooldown(60);
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault(); setError(""); setSuccess("");
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError("请输入有效的邮箱地址"); return;
+    }
+    setPending(true);
+    try {
+      const res = await fetch(`${apiBaseUrl}/auth/forgot-password`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error((body as any)?.error?.message || "暂时无法发送重置邮件，请稍后再试");
+      }
+      setSuccess("✅ 如果该邮箱已注册，我们会发送一封密码重置邮件，请查收。");
+      start();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "网络错误，请检查连接后重试");
+    } finally { setPending(false); }
+  }
+
+  if (success) {
+    return (
+      <div style={{ textAlign: "center", padding: "8px 0" }}>
+        <div className="form-success" style={{ marginBottom: 16, fontSize: 14 }} role="status">{success}</div>
+        <p style={{ color: "var(--ink-soft)", fontSize: 13, lineHeight: 1.7, margin: "0 0 20px" }}>
+          未收到邮件？请检查垃圾邮件箱，或等待 1 分钟后重新发送。
+        </p>
+        <button className="auth-submit" style={{ maxWidth: 260, margin: "0 auto" }} disabled={active} onClick={() => { setSuccess(""); setError(""); }}>
+          {active ? `${remaining} 秒后可重新发送` : "重新发送重置邮件"}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} noValidate>
+      <label>邮箱<input required name="email" type="email" autoComplete="email" placeholder="name@company.com" value={email} onChange={(e) => setEmail(e.target.value)} /></label>
+      {error && <p className="form-error" role="alert">{error}</p>}
+      <button className="auth-submit" disabled={pending}>
+        {pending ? <><span className="forgot-spinner" /> 发送中…</> : "发送重置邮件"}
+      </button>
+    </form>
+  );
+}
 
 export default function AuthPage() {
   const router = useRouter();
@@ -327,12 +395,7 @@ export default function AuthPage() {
         <section className="auth-card" aria-label="找回密码">
           <h2>找回密码</h2>
           <p className="auth-help">输入你的注册邮箱，我们将发送重置链接到你的邮箱。</p>
-          <form onSubmit={submit} noValidate>
-            <label>邮箱<input required name="email" type="email" autoComplete="email" placeholder="name@company.com" /></label>
-            {error && <p className="form-error" role="alert">{error}</p>}
-            {success && <p className="form-success" role="status">{success}</p>}
-            <button className="auth-submit" disabled={pending}>{pending ? "处理中…" : "发送重置邮件"}</button>
-          </form>
+          <ForgotPasswordForm />
           <p className="auth-switch-hint"><button type="button" onClick={() => switchMode("login")}>← 返回登录</button></p>
         </section>
       )}

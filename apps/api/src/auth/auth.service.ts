@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, ConflictException, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcryptjs";
@@ -17,6 +17,7 @@ import { MailService } from "../mail/mail.service";
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   constructor(
     @InjectRepository(User) private readonly users: Repository<User>,
     @InjectRepository(Role) private readonly roles: Repository<Role>,
@@ -120,7 +121,12 @@ export class AuthService {
     const webOrigin = this.config.get<string>("WEB_ORIGIN", "http://localhost:3000");
     const resetUrl = `${webOrigin}/auth/reset-password?token=${token}&id=${user.id}`;
 
-    await this.mail.sendPasswordResetEmail(user.email, resetUrl);
+    try {
+      await this.mail.sendPasswordResetEmail(user.email, resetUrl);
+    } catch (error) {
+      // Mail failure must not reveal whether the email exists
+      this.logger.error(`Failed to send reset email to ${normalized}: ${(error as Error).message}`);
+    }
   }
 
   async resetPassword(dto: ResetPasswordDto) {

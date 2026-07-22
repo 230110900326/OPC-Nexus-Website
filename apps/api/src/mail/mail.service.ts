@@ -7,6 +7,7 @@ import type { Transporter } from "nodemailer";
 export class MailService {
   private transporter!: Transporter;
   private from!: string;
+  private ready = false;
   private readonly logger = new Logger(MailService.name);
 
   constructor(private readonly config: ConfigService) {
@@ -19,12 +20,18 @@ export class MailService {
       const secure = port === 465;
       this.transporter = nodemailer.createTransport({ host, port, secure, auth: { user, pass } });
       this.from = this.config.get<string>("SMTP_FROM") || `"OPC Nexus" <${user}>`;
+      this.ready = true;
       this.logger.log(`MailService ready: ${host}:${port} as ${user}`);
     } else {
       this.from = `"OPC Nexus [TEST]" <no-reply@ethereal.email>`;
-      this.logger.warn("[DEV] No SMTP configured — using Ethereal test account. Reset links will be logged.");
-      this.initEthereal();
+      this.logger.warn("[DEV] No SMTP configured — will use Ethereal on first send.");
     }
+  }
+
+  private async ensureReady(): Promise<void> {
+    if (this.ready) return;
+    await this.initEthereal();
+    this.ready = true;
   }
 
   private async initEthereal() {
@@ -38,6 +45,7 @@ export class MailService {
   }
 
   async sendPasswordResetEmail(to: string, resetUrl: string): Promise<void> {
+    await this.ensureReady();
     const html = this.resetTemplate(resetUrl);
     const info = await this.transporter.sendMail({
       from: this.from, to,
