@@ -512,7 +512,6 @@ export default function AuthPage() {
       {mode === "forgot" && (
         <section className="auth-card" aria-label="找回密码">
           <h2>找回密码</h2>
-          <p className="auth-help">输入你的注册邮箱，我们将发送重置链接到你的邮箱。</p>
           <ForgotPasswordForm />
           <p className="auth-switch-hint"><button type="button" onClick={() => switchMode("login")}>← 返回登录</button></p>
         </section>

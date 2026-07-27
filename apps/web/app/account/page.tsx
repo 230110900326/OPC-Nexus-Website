@@ -3,7 +3,7 @@
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Account, authorizedRequest, refreshSession, signOut } from "../../lib/auth";
+import { Account, authorizedRequest, getAccessToken, getMyProfile, refreshSession, signOut } from "../../lib/auth";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -13,7 +13,13 @@ export default function AccountPage() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { refreshSession().then(u => { setUser(u); if (u.avatarUrl) setAvatarPreview(u.avatarUrl); }).catch(() => router.replace("/auth")); }, [router]);
+  useEffect(() => {
+    const token = getAccessToken();
+    const load = token
+      ? getMyProfile().catch(() => refreshSession())
+      : refreshSession();
+    load.then(u => { setUser(u); if (u.avatarUrl) setAvatarPreview(u.avatarUrl); }).catch(() => router.replace("/auth"));
+  }, [router]);
 
   function handleAvatarFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];

@@ -9,6 +9,7 @@ import { LoginDto } from "./dto/login.dto";
 import { RegisterDto } from "./dto/register.dto";
 import { ForgotPasswordDto } from "./dto/forgot-password.dto";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
+import { CheckEmailDto } from "./dto/check-email.dto";
 import { JwtAuthGuard } from "./jwt-auth.guard";
 
 @Controller("auth")
@@ -58,6 +59,14 @@ export class AuthController {
     return { success: true, data: result };
   }
 
+  @Post("check-email")
+  @HttpCode(200)
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  async checkEmail(@Body() input: CheckEmailDto) {
+    const registered = await this.auth.isEmailRegistered(input.email);
+    return { success: true, data: { registered } };
+  }
+
   @Post("reset-password")
   @HttpCode(200)
   @Throttle({ default: { limit: 5, ttl: 60000 } })
@@ -74,6 +83,6 @@ export class AuthController {
   private cookieOptions(): CookieOptions {
     const configuredSecure = this.config.get<boolean | string>("COOKIE_SECURE");
     const secure = configuredSecure === undefined ? this.config.get<string>("NODE_ENV") === "production" : configuredSecure === true || configuredSecure === "true";
-    return { httpOnly: true, sameSite: "strict", secure, path: this.config.get<string>("REFRESH_COOKIE_PATH")?.trim() || "/auth" };
+    return { httpOnly: true, sameSite: "strict", secure, path: this.config.get<string>("REFRESH_COOKIE_PATH")?.trim() || "/api" };
   }
 }
