@@ -3,11 +3,11 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createDemoSession, DEMO_ACCOUNTS, signIn } from "../../lib/auth";
+import { clearAccessToken, signIn } from "../../lib/auth";
 import { BrandLogo } from "../../components/brand-logo";
+import { apiBaseUrl } from "../../lib/api-base";
 
-type AuthMode = "login" | "register" | "forgot" | "demo";
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000";
+type AuthMode = "login" | "register" | "forgot";
 
 function useCooldown(seconds: number) {
   const [remaining, setRemaining] = useState(0);
@@ -23,6 +23,39 @@ function useCooldown(seconds: number) {
   return { remaining, start, active: remaining > 0 };
 }
 
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function PasswordInput({ name, placeholder, autoComplete, value, onChange, hasError }: {
+  name: string; placeholder: string; autoComplete?: string;
+  value?: string; onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void; hasError?: boolean;
+}) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="password-wrapper">
+      <input
+        required name={name} type={show ? "text" : "password"} minLength={8}
+        autoComplete={autoComplete} placeholder={placeholder}
+        className={hasError ? "has-error" : ""}
+        value={value} onChange={onChange}
+      />
+      <button type="button" className="password-toggle" onClick={() => setShow(!show)}
+        aria-label={show ? "隐藏密码" : "显示密码"} tabIndex={-1}>
+        {show ? (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+            <line x1="1" y1="1" x2="23" y2="23" />
+          </svg>
+        ) : (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        )}
+      </button>
+    </div>
+  );
+}
+
 function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
@@ -33,14 +66,34 @@ function ForgotPasswordForm() {
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault(); setError(""); setSuccess(""); setDevResetUrl("");
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || !emailRegex.test(trimmedEmail)) {
       setError("请输入有效的邮箱地址"); return;
     }
+
     setPending(true);
     try {
+      // Check if email is registered first
+      const checkRes = await fetch(`${apiBaseUrl}/auth/check-email`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmedEmail }),
+      });
+      if (!checkRes.ok) {
+        throw new Error("网络错误，请检查连接后重试");
+      }
+      const checkBody = await checkRes.json().catch(() => ({}));
+      const registered = (checkBody as any)?.data?.registered;
+      if (!registered) {
+        setError("该邮箱尚未注册，请先创建账号");
+        setPending(false);
+        return;
+      }
+
+      // Email registered, send reset
       const res = await fetch(`${apiBaseUrl}/auth/forgot-password`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
+        body: JSON.stringify({ email: trimmedEmail }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -76,8 +129,13 @@ function ForgotPasswordForm() {
             未收到邮件？请检查垃圾邮件箱，或等待 1 分钟后重新发送。
           </p>
         )}
+        {active && (
+          <p style={{ textAlign: "center", color: "var(--ink-soft)", fontSize: 13, margin: "0 0 12px" }}>
+            {remaining} 秒后可重新发送
+          </p>
+        )}
         <button className="auth-submit" style={{ maxWidth: 260, margin: "0 auto" }} disabled={active} onClick={() => { setSuccess(""); setError(""); setDevResetUrl(""); }}>
-          {active ? `${remaining} 秒后可重新发送` : "重新发送重置邮件"}
+          重新发送重置邮件
         </button>
       </div>
     );
@@ -85,10 +143,14 @@ function ForgotPasswordForm() {
 
   return (
     <form onSubmit={handleSubmit} noValidate>
-      <label>邮箱<input required name="email" type="email" autoComplete="email" placeholder="name@company.com" value={email} onChange={(e) => setEmail(e.target.value)} /></label>
+      <label className={error ? "has-error" : ""}>邮箱
+        <input required name="email" type="email" autoComplete="email" placeholder="name@company.com"
+          className={error ? "has-error" : ""}
+          value={email} onChange={(e) => { setEmail(e.target.value); setError(""); }} />
+      </label>
       {error && <p className="form-error" role="alert">{error}</p>}
       <button className="auth-submit" disabled={pending}>
-        {pending ? <><span className="forgot-spinner" /> 发送中…</> : "发送重置邮件"}
+        {pending ? <><span className="forgot-spinner" /> 检测中…</> : "发送重置邮件"}
       </button>
     </form>
   );
@@ -111,7 +173,7 @@ export default function AuthPage() {
   function validateStep2(input: Record<string, string>): boolean {
     const errs: Record<string, string> = {};
     if (!input.displayName?.trim() || input.displayName.trim().length < 2) errs.displayName = "请输入至少 2 个字符的用户名";
-    if (!input.email?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email.trim())) errs.email = "请输入有效的邮箱地址";
+    if (!input.email?.trim() || !emailRegex.test(input.email.trim())) errs.email = "请输入有效的邮箱地址";
     if (!input.password || input.password.length < 8) errs.password = "密码至少 8 位";
     else if (!/(?=.*[a-zA-Z])(?=.*\d)/.test(input.password)) errs.password = "密码需同时包含字母和数字";
     if (input.password !== input.confirmPassword) errs.confirmPassword = "两次输入的密码不一致";
@@ -138,12 +200,6 @@ export default function AuthPage() {
     if (nextMode === "register") { setRegisterRole("user"); setRegisterStep("role"); }
   }
 
-  function handleDemoLogin(role: keyof typeof DEMO_ACCOUNTS) {
-    createDemoSession(role);
-    const dest = new URLSearchParams(window.location.search).get("next");
-    router.replace(dest?.startsWith("/") && !dest.startsWith("//") && !dest.includes("\\") ? dest : "/");
-  }
-
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setError(""); setSuccess(""); setFieldErrors({});
 
@@ -154,6 +210,21 @@ export default function AuthPage() {
 
     const fields = new FormData(event.currentTarget);
     const input = Object.fromEntries(fields.entries()) as Record<string, string>;
+
+    // Email validation for login mode
+    if (mode === "login") {
+      const emailErr: Record<string, string> = {};
+      if (!input.email?.trim() || !emailRegex.test(input.email.trim())) {
+        emailErr.email = "请输入有效的邮箱地址";
+      }
+      if (!input.password || input.password.length < 8) {
+        emailErr.password = "密码至少 8 位";
+      }
+      if (Object.keys(emailErr).length > 0) {
+        setFieldErrors(emailErr);
+        return;
+      }
+    }
 
     // Per-field validation for registration
     if (mode === "register") {
@@ -171,6 +242,18 @@ export default function AuthPage() {
 
     try {
       if (mode === "forgot") {
+        // Check email registered first
+        const checkRes = await fetch(`${apiBaseUrl}/auth/check-email`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: input.email.trim() }),
+        });
+        if (!checkRes.ok) throw new Error("网络错误");
+        const checkBody = await checkRes.json().catch(() => ({}));
+        if (!(checkBody as any)?.data?.registered) {
+          setError("该邮箱尚未注册，请先创建账号");
+          setPending(false);
+          return;
+        }
         const res = await fetch(`${apiBaseUrl}/auth/forgot-password`, {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: input.email }),
@@ -194,7 +277,19 @@ export default function AuthPage() {
         request.bio = input.bio.trim();
       }
 
-      await signIn(mode as "login" | "register", request);
+      if (mode === "register") {
+        await signIn("register", request);
+        clearAccessToken();
+        setMode("login");
+        setRegisterStep("role");
+        if (registerRole === "researcher") {
+          setSuccess("注册申请已提交！请等待运营审核，审核通过后即可登录。");
+        } else {
+          setSuccess("注册成功！请登录你的账号。");
+        }
+        return;
+      }
+      await signIn("login", request);
       const dest = new URLSearchParams(window.location.search).get("next");
       router.replace(dest?.startsWith("/") && !dest.startsWith("//") && !dest.includes("\\") ? dest : "/");
     } catch (reason) {
@@ -206,19 +301,12 @@ export default function AuthPage() {
 
   const aside =
     mode === "forgot" ? { heading: <>找回<br />你的<span>密码</span></>, desc: "输入注册邮箱，我们会发送一封密码重置邮件。" }
-    : mode === "demo" ? { heading: <>预览<br /><span>演示</span>账号</>, desc: "选择一个预览账号快速体验平台的全部功能。" }
     : mode === "register" ? { heading: <>创建<span>你的</span><br />OPC 身份</>, desc: "面向财经、产业、投资与企业经营者的专业内容与交流平台。" }
     : { heading: <>判断<br />不止<span>于此</span></>, desc: "不止于信息，还有连接；不止于观点，还有证据；不止于判断，还有同行。" };
 
-  const demoAccounts = [
-    { role: "user" as const, label: "普通用户", desc: "可浏览内容、收藏、发布需求与对接" },
-    { role: "partner" as const, label: "产业协作者", desc: "可协作访谈、提交案例与对接需求" },
-    { role: "operator" as const, label: "运营管理员", desc: "可管理内容、审核需求、配置运营台" },
-  ];
-
   return <main className="auth-page">
     <BrandLogo tone="dark" />
-    <section className={`auth-shell${mode === "register" ? " auth-shell-register" : mode === "demo" ? " auth-shell-demo" : ""}`}>
+    <section className={`auth-shell${mode === "register" ? " auth-shell-register" : ""}`}>
       <aside className={`auth-aside${mode === "register" ? " auth-aside-register" : ""}`}>
         <div className="auth-brand-panel">
           <p className="eyebrow">OPC NEXUS</p>
@@ -235,8 +323,19 @@ export default function AuthPage() {
           <h2>登录</h2>
           <p className="auth-help">欢迎回来，请登录你的账号。</p>
           <form onSubmit={submit} noValidate>
-            <label>邮箱<input required name="email" type="email" autoComplete="email" placeholder="name@company.com" /></label>
-            <label>密码<input required name="password" type="password" minLength={8} autoComplete="current-password" placeholder="至少 8 位" /></label>
+            <label className={fieldErrors.email ? "has-error" : ""}>
+              邮箱
+              <input required name="email" type="email" autoComplete="email" placeholder="name@company.com"
+                className={fieldErrors.email ? "has-error" : ""} />
+            </label>
+            {fieldErrors.email && <span className="auth-field-error">{fieldErrors.email}</span>}
+            <label className={fieldErrors.password ? "has-error" : ""}>
+              密码
+              <div className="password-wrapper">
+                <PasswordInput name="password" placeholder="至少 8 位" autoComplete="current-password" hasError={!!fieldErrors.password} />
+              </div>
+            </label>
+            {fieldErrors.password && <span className="auth-field-error">{fieldErrors.password}</span>}
             <p className="auth-policy-note">登录前可查看 <Link href="/terms" target="_blank" rel="noopener noreferrer">《用户服务协议》</Link>和<Link href="/privacy" target="_blank" rel="noopener noreferrer">《隐私政策》</Link>。</p>
             {error && <p className="form-error" role="alert">{error}</p>}
             <button className="auth-submit" disabled={pending}>{pending ? "处理中…" : "登录"}</button>
@@ -246,8 +345,6 @@ export default function AuthPage() {
             <span className="auth-switch-sep">|</span>
             <button type="button" onClick={() => switchMode("forgot")}>忘记密码？</button>
           </p>
-          <div className="auth-demo-separator"><span>或</span></div>
-          <button className="auth-demo-entry" type="button" onClick={() => switchMode("demo")}>🔍 离线预览 Demo</button>
         </section>
       )}
 
@@ -351,9 +448,13 @@ export default function AuthPage() {
                 {fieldErrors.displayName && <span className="auth-field-error">{fieldErrors.displayName}</span>}
                 <label className={`form-label-required${fieldErrors.email ? " has-error" : ""}`}><span>邮箱<span className="required-mark">*</span></span><input required name="email" type="email" autoComplete="email" placeholder="name@company.com" /></label>
                 {fieldErrors.email && <span className="auth-field-error">{fieldErrors.email}</span>}
-                <label className={`form-label-required${fieldErrors.password ? " has-error" : ""}`}><span>密码<span className="required-mark">*</span></span><input required name="password" type="password" minLength={8} autoComplete="new-password" placeholder="至少 8 位，包含字母和数字" /></label>
+                <label className={`form-label-required${fieldErrors.password ? " has-error" : ""}`}><span>密码<span className="required-mark">*</span></span>
+                  <PasswordInput name="password" placeholder="至少 8 位，包含字母和数字" autoComplete="new-password" hasError={!!fieldErrors.password} />
+                </label>
                 {fieldErrors.password && <span className="auth-field-error">{fieldErrors.password}</span>}
-                <label className={`form-label-required${fieldErrors.confirmPassword ? " has-error" : ""}`}><span>确认密码<span className="required-mark">*</span></span><input required name="confirmPassword" type="password" minLength={8} autoComplete="new-password" placeholder="请再次输入密码" /></label>
+                <label className={`form-label-required${fieldErrors.confirmPassword ? " has-error" : ""}`}><span>确认密码<span className="required-mark">*</span></span>
+                  <PasswordInput name="confirmPassword" placeholder="请再次输入密码" autoComplete="new-password" hasError={!!fieldErrors.confirmPassword} />
+                </label>
                 {fieldErrors.confirmPassword && <span className="auth-field-error">{fieldErrors.confirmPassword}</span>}
               </div>
 
@@ -413,34 +514,6 @@ export default function AuthPage() {
           <h2>找回密码</h2>
           <p className="auth-help">输入你的注册邮箱，我们将发送重置链接到你的邮箱。</p>
           <ForgotPasswordForm />
-          <p className="auth-switch-hint"><button type="button" onClick={() => switchMode("login")}>← 返回登录</button></p>
-        </section>
-      )}
-
-      {/* ═══════════ Demo 预览 ═══════════ */}
-      {mode === "demo" && (
-        <section className="auth-card auth-card-demo" aria-label="Demo 预览">
-          <h2>🔍 离线预览 Demo</h2>
-          <p className="auth-help">无需后端 API，直接预览平台功能和已登录状态界面。</p>
-          <div className="demo-account-list">
-            {demoAccounts.map((acct) => (
-              <button
-                key={acct.role}
-                className="demo-account-card"
-                type="button"
-                onClick={() => handleDemoLogin(acct.role)}
-              >
-                <span className="demo-account-avatar">{DEMO_ACCOUNTS[acct.role].displayName.slice(0, 1)}</span>
-                <div className="demo-account-info">
-                  <strong>{DEMO_ACCOUNTS[acct.role].displayName}</strong>
-                  <span className="demo-account-email">{DEMO_ACCOUNTS[acct.role].email}</span>
-                  <span className="demo-account-roles">{acct.label} — {acct.desc}</span>
-                </div>
-                <svg className="demo-account-arrow" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M9 18l6-6-6-6" stroke="currentColor" fill="none" strokeWidth="2"/></svg>
-              </button>
-            ))}
-          </div>
-          <p className="auth-demo-note">💡 Demo 模式将数据保存在浏览器本地，无需连接后端 API。退出登录后数据自动清除。如需完整的注册/登录功能，请在本地 Docker 环境中运行。</p>
           <p className="auth-switch-hint"><button type="button" onClick={() => switchMode("login")}>← 返回登录</button></p>
         </section>
       )}
