@@ -30,10 +30,10 @@ export class HomepageService {
   async assemble(now = new Date()) {
     const [configs, recommendations, policies, videos, discussions, events, creators] = await Promise.all([
       this.configs.find({ order: { sortOrder: "ASC", updatedAt: "DESC" } }),
-      this.ranking.feed({ mode: FeedMode.RECOMMENDED, scope: RankScope.ALL, window: RankWindow.WEEK }),
-      this.ranking.feed({ mode: FeedMode.HOT, scope: RankScope.POLICY, window: RankWindow.WEEK }),
-      this.ranking.feed({ mode: FeedMode.HOT, scope: RankScope.VIDEO, window: RankWindow.WEEK }),
-      this.ranking.feed({ mode: FeedMode.HOT, scope: RankScope.COMMUNITY, window: RankWindow.WEEK }),
+      this.ranking.feed({ mode: FeedMode.RECOMMENDED, scope: RankScope.ALL, window: RankWindow.WEEK, limit: 50 }).then((result) => result.items),
+      this.ranking.feed({ mode: FeedMode.HOT, scope: RankScope.POLICY, window: RankWindow.WEEK, limit: 50 }).then((result) => result.items),
+      this.ranking.feed({ mode: FeedMode.HOT, scope: RankScope.VIDEO, window: RankWindow.WEEK, limit: 50 }).then((result) => result.items),
+      this.ranking.feed({ mode: FeedMode.HOT, scope: RankScope.COMMUNITY, window: RankWindow.WEEK, limit: 50 }).then((result) => result.items),
       this.events.find({ where: { status: EventStatus.PUBLISHED, startsAt: MoreThan(now) }, relations: { organizer: true }, order: { startsAt: "ASC" }, take: 6 }),
       this.creators.find({ where: { isEnabled: true, authorizationStatus: AuthorizationStatus.AUTHORIZED }, relations: { accounts: true }, order: { trustLevel: "DESC", createdAt: "ASC" }, take: 6 }),
     ]);

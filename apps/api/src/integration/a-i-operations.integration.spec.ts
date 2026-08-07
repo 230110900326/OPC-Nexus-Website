@@ -27,7 +27,7 @@ describe("A-I operations integration", () => {
     const configService = new HomepageConfigService(configRepository, eventRepository, audit);
     const actor = { id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", email: "operator@opc.local", roles: [SystemRole.OPERATOR] };
     await configService.create({ kind: HomepageConfigKind.BANNER, moduleKey: HomepageModuleKey.FOCUS, title: "OPC 今日焦点", targetUrl: "/discover", isOnline: true }, actor);
-    const homepage = new HomepageService(configRepository, { find: jest.fn().mockResolvedValue([]) } as unknown as Repository<Event>, { count: jest.fn() } as unknown as Repository<EventRegistration>, { find: jest.fn().mockResolvedValue([]) } as unknown as Repository<Creator>, { feed: jest.fn().mockResolvedValue([]) } as unknown as RankingService);
+    const homepage = new HomepageService(configRepository, { find: jest.fn().mockResolvedValue([]) } as unknown as Repository<Event>, { count: jest.fn() } as unknown as Repository<EventRegistration>, { find: jest.fn().mockResolvedValue([]) } as unknown as Repository<Creator>, { feed: jest.fn().mockResolvedValue({ items: [], pagination: { page: 1, limit: 50, total: 0, totalPages: 0 } }) } as unknown as RankingService);
     const assembled = await homepage.assemble(new Date());
     await configService.track({ configIds: [assembled.banners[0].trackingId], eventType: RecommendationEventType.IMPRESSION, pagePath: "/" }, "integration-session");
     expect(assembled.banners[0].title).toBe("OPC 今日焦点");

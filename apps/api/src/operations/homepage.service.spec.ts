@@ -29,7 +29,7 @@ describe("Stage I homepage assembly", () => {
     const creator = { id: "66666666-6666-4666-8666-666666666666", name: "OPC 作者", avatarUrl: null, industries: ["财经"], trustLevel: 5, authorizationStatus: AuthorizationStatus.AUTHORIZED, isEnabled: true, accounts: [{ platform: "bilibili", isEnabled: true }] } as Creator;
     const creators = { find: jest.fn().mockResolvedValue([creator]) } as unknown as Repository<Creator>;
     const feedItem = { id: "77777777-7777-4777-8777-777777777777", contentType: "article", title: "一人公司经营", excerpt: "摘要", url: "/articles/opc", coverImageUrl: null, source: "OPC", industry: "财经", publishedAt: now, heat: 88, reason: "重点主题", metrics: { likes: 1, comments: 1, favorites: 1, shares: 1, reads: 10 } };
-    const ranking = { feed: jest.fn(async (input: { mode: FeedMode; scope: RankScope }) => [{ ...feedItem, contentType: input.scope === RankScope.POLICY ? "policy" : input.scope === RankScope.VIDEO ? "video" : input.scope === RankScope.COMMUNITY ? "post" : "article" }]) } as unknown as RankingService;
+    const ranking = { feed: jest.fn(async (input: { mode: FeedMode; scope: RankScope }) => ({ items: [{ ...feedItem, contentType: input.scope === RankScope.POLICY ? "policy" : input.scope === RankScope.VIDEO ? "video" : input.scope === RankScope.COMMUNITY ? "post" : "article" }], pagination: { page: 1, limit: 50, total: 1, totalPages: 1 } })) } as unknown as RankingService;
     const result = await new HomepageService(configs, events, registrations, creators, ranking).assemble(now);
     expect(result.banners[0].title).toBe("今日焦点");
     expect(result.modules.find((item) => item.moduleKey === HomepageModuleKey.POLICIES)?.title).toBe("政策雷达");

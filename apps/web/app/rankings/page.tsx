@@ -1,3 +1,3 @@
-import { RankingBoard } from "../../components/ranking-board";
+import { DiscoveryBoard } from "../../components/discovery-board";
 import { SiteChrome } from "../../components/site-chrome";
-export default function RankingsPage() { return <SiteChrome><RankingBoard /></SiteChrome>; }
+export default function RankingsPage() { return <SiteChrome><DiscoveryBoard initialView="rankings" /></SiteChrome>; }

@@ -94,6 +94,19 @@ export class RankingService {
   }
 
   async feed(input: FeedQueryDto, userId?: string) {
+    const all = await this.feedAll(input, userId);
+    return paginate(all, input.page ?? 1, input.limit ?? 20);
+  }
+
+  async rankings(input: FeedQueryDto) {
+    const hours = input.window === RankWindow.DAY ? 24 : input.window === RankWindow.MONTH ? 720 : 168;
+    const all = await this.feedAll({ ...input, mode: FeedMode.HOT });
+    const filtered = all.filter((item) => Date.now() - item.publishedAt.getTime() <= hours * 3_600_000);
+    const ranked = filtered.map((item, index) => ({ ...item, rank: index + 1, previousRank: null, updatedAt: new Date() }));
+    return paginate(ranked, input.page ?? 1, input.limit ?? 20);
+  }
+
+  private async feedAll(input: FeedQueryDto, userId?: string): Promise<FeedItem[]> {
     let items = await this.candidates(input.scope);
     const user = userId ? await this.users.findOneBy({ id: userId }) : null;
     const followed = userId ? await this.follows.find({ where: { follower: { id: userId } } }) : [];
@@ -103,21 +116,15 @@ export class RankingService {
     }
     const scored = await Promise.all(items.map((item) => this.score(item, input, user, items)));
     scored.sort((a, b) => input.mode === FeedMode.LATEST ? b.publishedAt.getTime() - a.publishedAt.getTime() : b.heat - a.heat);
-    return scored.slice(0, 50);
-  }
-
-  async rankings(input: FeedQueryDto) {
-    const hours = input.window === RankWindow.DAY ? 24 : input.window === RankWindow.MONTH ? 720 : 168;
-    const items = await this.feed({ ...input, mode: FeedMode.HOT });
-    return items.filter((item) => Date.now() - item.publishedAt.getTime() <= hours * 3_600_000).map((item, index) => ({ ...item, rank: index + 1, previousRank: null, updatedAt: new Date() }));
+    return scored;
   }
 
   private async candidates(scope: RankScope): Promise<Candidate[]> {
     const [articles, videos, posts, demands] = await Promise.all([
-      [RankScope.VIDEO, RankScope.COMMUNITY, RankScope.DEMAND].includes(scope) ? [] : this.articles.find({ where: { status: ArticleStatus.PUBLISHED, publishedAt: LessThanOrEqual(new Date()) }, relations: { category: true, tags: true, sources: true, operator: true }, order: { publishedAt: "DESC" }, take: 60 }),
-      scope !== RankScope.ALL && scope !== RankScope.VIDEO ? [] : this.videos.find({ where: { isPublished: true }, relations: { creatorAccount: { creator: true } }, order: { publishedAt: "DESC" }, take: 60 }),
-      scope !== RankScope.ALL && scope !== RankScope.COMMUNITY ? [] : this.posts.find({ where: { status: PostStatus.PUBLISHED }, relations: { author: true, section: true }, order: { createdAt: "DESC" }, take: 60 }),
-      scope !== RankScope.ALL && scope !== RankScope.DEMAND ? [] : this.demands.find({ where: { status: DemandStatus.PUBLISHED }, relations: { author: { roles: true }, industries: true }, order: { createdAt: "DESC" }, take: 60 }),
+      [RankScope.VIDEO, RankScope.COMMUNITY, RankScope.DEMAND].includes(scope) ? [] : this.articles.find({ where: { status: ArticleStatus.PUBLISHED, publishedAt: LessThanOrEqual(new Date()) }, relations: { category: true, tags: true, sources: true, operator: true }, order: { publishedAt: "DESC" }, take: 120 }),
+      scope !== RankScope.ALL && scope !== RankScope.VIDEO ? [] : this.videos.find({ where: { isPublished: true }, relations: { creatorAccount: { creator: true } }, order: { publishedAt: "DESC" }, take: 120 }),
+      scope !== RankScope.ALL && scope !== RankScope.COMMUNITY ? [] : this.posts.find({ where: { status: PostStatus.PUBLISHED }, relations: { author: true, section: true }, order: { createdAt: "DESC" }, take: 120 }),
+      scope !== RankScope.ALL && scope !== RankScope.DEMAND ? [] : this.demands.find({ where: { status: DemandStatus.PUBLISHED }, relations: { author: { roles: true }, industries: true }, order: { createdAt: "DESC" }, take: 120 }),
     ]);
 
     const articleItems: Candidate[] = articles
@@ -164,4 +171,15 @@ export class RankingService {
     const reason = input.mode === FeedMode.LATEST ? "最新发布" : input.mode === FeedMode.FOLLOWING ? "来自你的关注" : industryMatch ? `与你关注的${item.industry}相关` : item.type === "demand" ? "供需对接热度较高" : item.keywordMatch > 0 ? "命中 OPC 重点主题" : "全站热度较高";
     return { id: item.id, contentType: item.type, title: item.title, excerpt: item.excerpt, url: item.url, coverImageUrl: item.cover, source: item.source, industry: item.industry, publishedAt: item.publishedAt, heat, reason, metrics: { likes: metric?.likeCount ?? 0, comments: metric?.commentCount ?? 0, favorites: metric?.favoriteCount ?? 0, shares: metric?.shareCount ?? 0, reads: metric?.readCount ?? 0 } };
   }
+}
+
+export type PaginationMeta = { page: number; limit: number; total: number; totalPages: number };
+export type PaginatedResult<T> = { items: T[]; pagination: PaginationMeta };
+
+function paginate<T>(all: T[], page: number, limit: number): PaginatedResult<T> {
+  const total = all.length;
+  const totalPages = Math.ceil(total / limit) || 1;
+  const safePage = Math.min(Math.max(1, page), totalPages);
+  const items = all.slice((safePage - 1) * limit, safePage * limit);
+  return { items, pagination: { page: safePage, limit, total, totalPages } };
 }
