@@ -8,6 +8,11 @@ COPY apps/web/package.json apps/web/package.json
 COPY packages/shared/package.json packages/shared/package.json
 COPY packages/ui/package.json packages/ui/package.json
 RUN npm config set registry "${NPM_REGISTRY}" && npm ci
+# Ensure the Linux SWC compiler binary is present. npm ci treats it as an optional
+# dependency, so a flaky registry download silently skips it, which makes `next build`
+# try to patch the lockfile at runtime and time out. Install it explicitly from the
+# configured mirror using the exact version pinned in the lockfile.
+RUN npm install --no-save --registry "${NPM_REGISTRY}" --workspace=@opc/web "@next/swc-linux-x64-musl@$(node -p "require('./package-lock.json').packages['apps/web/node_modules/next/node_modules/@next/swc-linux-x64-musl'].version")"
 
 FROM deps AS build
 ARG NEXT_PUBLIC_API_BASE_URL=http://localhost:4000
