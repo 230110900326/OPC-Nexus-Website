@@ -28,5 +28,5 @@ export class ArticlesController {
   @Post("admin/articles/:id/offline") @UseGuards(JwtAuthGuard, RolesGuard) @Roles(...publishers) async offline(@Param("id") id: string, @AuthenticatedUser() user: AuthUser) { return { success: true, data: await this.articles.offline(id, user) }; }
   @Post("admin/articles/:id/return") @UseGuards(JwtAuthGuard, RolesGuard) @Roles(...publishers) async returnToDraft(@Param("id") id: string, @AuthenticatedUser() user: AuthUser) { return { success: true, data: await this.articles.returnToDraft(id, user) }; }
   @Post("admin/articles/:id/restore") @UseGuards(JwtAuthGuard, RolesGuard) @Roles(...publishers) async restore(@Param("id") id: string, @AuthenticatedUser() user: AuthUser) { return { success: true, data: await this.articles.restore(id, user) }; }
-  @Post("admin/articles/backfill") @UseGuards(JwtAuthGuard, RolesGuard) @Roles(...publishers) async backfill() { return { success: true, data: await this.articles.backfillCoversAndPolicy() }; }
+  @Post("admin/articles/backfill") @UseGuards(JwtAuthGuard, RolesGuard) @Roles(...publishers) async backfill() { return { success: true, data: await this.articles.backfill() }; }
 }

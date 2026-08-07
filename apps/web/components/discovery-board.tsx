@@ -33,10 +33,10 @@ export function DiscoveryBoard({ initialView }: { initialView: "feed" | "ranking
   const goPage = (next: number) => { setPage(next); if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" }); };
   const feedEmpty = !loading && !error && !items.length;
   const feedItem = (item: FeedItem, key: string) => (
-    <article key={key}><div className="signal-reason">{item.reason}</div><div className="signal-type">{labels[item.contentType]}<span>{item.industry ?? "综合"}</span></div><div><h2>{item.contentType === "video" ? <a href={item.url} target="_blank" rel="noreferrer">{item.title}</a> : <Link href={item.url}>{item.title}</Link>}</h2><p>{item.excerpt}</p><footer><span>{item.source} · {new Date(item.publishedAt).toLocaleDateString("zh-CN")}</span><span>热度 {item.heat.toFixed(1)}</span></footer></div></article>
+    <article key={key}><div className="signal-reason">{item.reason}</div><div className="signal-type">{labels[item.contentType]}<span>{item.industry ?? "综合"}</span></div><div><h2><Link href={item.url}>{item.title}</Link></h2><p>{item.excerpt}</p><footer><span>{item.source} · {new Date(item.publishedAt).toLocaleDateString("zh-CN")}</span><span>热度 {item.heat.toFixed(1)}</span></footer></div></article>
   );
   const rankItem = (item: FeedItem, index: number, key: string) => (
-    <article key={key}><span className="rank-number">{String((page - 1) * PAGE_SIZE + index + 1).padStart(2, "0")}</span><div><p>{item.contentType.toUpperCase()} · {item.industry ?? "综合"}</p><h2>{item.contentType === "video" ? <a href={item.url} target="_blank" rel="noreferrer">{item.title}</a> : <Link href={item.url}>{item.title}</Link>}</h2><small>{item.source} · {item.reason}</small></div><strong>{item.heat.toFixed(1)}</strong></article>
+    <article key={key}><span className="rank-number">{String((page - 1) * PAGE_SIZE + index + 1).padStart(2, "0")}</span><div><p>{item.contentType.toUpperCase()} · {item.industry ?? "综合"}</p><h2><Link href={item.url}>{item.title}</Link></h2><small>{item.source} · {item.reason}</small></div><strong>{item.heat.toFixed(1)}</strong></article>
   );
 
   return <main className={isFeed ? "signal-feed" : "ranking-page"}>

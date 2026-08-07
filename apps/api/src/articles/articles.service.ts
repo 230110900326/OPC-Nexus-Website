@@ -14,6 +14,7 @@ import { RankingService } from "../ranking/ranking.service";
 import { MetricContentType } from "../database/entities/content-metric.entity";
 import { AuditService } from "../audit/audit.service";
 import { AuditAction } from "../database/entities/audit-log.entity";
+import { cleanTitle } from "../common/title.util";
 
 const publicRelations = { category: true, tags: true, sources: true } as const;
 const adminRelations = { ...publicRelations, operator: true } as const;
@@ -91,8 +92,8 @@ export class ArticlesService {
   private async resolveTags(ids: string[]) { const values = ids.length ? await this.tags.findBy({ id: In(ids) }) : []; if (values.length !== ids.length) throw new BadRequestException("包含不存在的标签"); return values; }
   private async ensureSlug(slug: string) { if (await this.articles.exists({ where: { slug } })) throw new ConflictException("文章 slug 已存在"); }
 
-  /** 存量数据回填（幂等，可重复执行）：① 把被智能体识别为政策但仍为 news 的文章升级为 policy；② 给缺失封面图的文章写入自动生成封面 URL。 */
-  async backfillCoversAndPolicy() {
+  /** 存量数据回填（幂等，可重复执行）：① 政策归类；② 缺失封面补生成 URL；③ 精简标题。 */
+  async backfill() {
     const policyResult = await this.articles.createQueryBuilder("article")
       .update(Article)
       .set({ type: ArticleType.POLICY })
@@ -104,6 +105,19 @@ export class ArticlesService {
       .set({ coverImageUrl: () => "'/api/covers/' || article.slug" })
       .where("article.cover_image_url IS NULL OR article.cover_image_url = ''")
       .execute();
-    return { policyReclassified: policyResult.affected ?? 0, coversFilled: coverResult.affected ?? 0 };
+    const titlesShortened = await this.shortenTitles();
+    return { policyReclassified: policyResult.affected ?? 0, coversFilled: coverResult.affected ?? 0, ...titlesShortened };
+  }
+
+  /** 精简所有文章标题：去掉来源后缀、超长标题截断（幂等，可重复执行）。 */
+  async shortenTitles(): Promise<{ titlesShortened: number }> {
+    const articles = await this.articles.find({ select: { id: true, title: true } });
+    const changed: Pick<Article, "id" | "title">[] = [];
+    for (const article of articles) {
+      const cleaned = cleanTitle(article.title);
+      if (cleaned !== article.title) changed.push({ id: article.id, title: cleaned });
+    }
+    if (changed.length) await this.articles.save(changed as Article[]);
+    return { titlesShortened: changed.length };
   }
 }

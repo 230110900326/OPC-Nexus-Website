@@ -68,12 +68,6 @@ export default function VideoDetailPage() {
               className="video-player-iframe"
               title={title}
             />
-            <div className="video-player-fallback-overlay" id="player-fallback">
-              <p>如果播放器未加载，请点击下方按钮在 Bilibili 观看</p>
-              <a href={video.originalUrl} target="_blank" rel="noopener noreferrer" className="btn-primary">
-                在 Bilibili 观看完整视频 →
-              </a>
-            </div>
           </div>
         ) : (
           <div className="video-player-fallback">
