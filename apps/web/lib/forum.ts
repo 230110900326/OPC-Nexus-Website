@@ -1,6 +1,6 @@
 import { authorizedRequest } from "./auth";
 import { getAccessToken, refreshSession } from "./auth";
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000";
+import { apiBaseUrl } from "./api-base";
 type Envelope<T> = { success: boolean; data?: T; error?: { message?: string } };
 async function publicRequest<T>(path: string) { const response = await fetch(`${apiBaseUrl}${path}`, { cache: "no-store" }); const body = await response.json() as Envelope<T>; if (!response.ok || !body.success || body.data === undefined) throw new Error(body.error?.message ?? "请求未能完成"); return body.data; }
 function query(input: Record<string, string | number | undefined>) { const params = new URLSearchParams(); Object.entries(input).forEach(([key, value]) => { if (value !== undefined && value !== "") params.set(key, String(value)); }); return params.size ? `?${params}` : ""; }

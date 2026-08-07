@@ -71,84 +71,94 @@ export default function AccountPage() {
           <button onClick={leave}>退出登录</button>
         </div>
       </header>
+
       <section className="profile-layout">
+        {/* ── Left: Profile Card ── */}
         <aside className="profile-card">
-          <p className="eyebrow">我的 OPC 档案</p>
-          <div className="profile-monogram">{user.avatarUrl ? <img src={user.avatarUrl} alt="" referrerPolicy="no-referrer" /> : userInitial}</div>
-          <h1>{user.displayName}</h1>
+          <p className="eyebrow">我的档案</p>
+          <div className="profile-monogram">
+            {user.avatarUrl ? <img src={user.avatarUrl} alt="" referrerPolicy="no-referrer" /> : userInitial}
+          </div>
+          <h2>{user.displayName}</h2>
           <p>{user.jobTitle || "待补充职位"}{user.company ? ` · ${user.company}` : ""}</p>
           <dl>
             <div><dt>行业</dt><dd>{user.industry || "尚未选择"}</dd></div>
             <div><dt>身份</dt><dd>{user.roles.join(" · ")}</dd></div>
           </dl>
-          <Link className="profile-demand-link" href="/account/demands">进入供需工作台 →</Link>
+          <div className="profile-card-links">
+            <Link href="/account/demands" className="btn-card-link">供需工作台</Link>
+            <Link href="/account/posts" className="btn-card-link">我的讨论</Link>
+            <Link href="/account/history" className="btn-card-link">浏览历史</Link>
+          </div>
         </aside>
+
+        {/* ── Right: Edit Form ── */}
         <section className="profile-form">
           <p className="eyebrow">资料设置</p>
-          <h2>让同行更好地认识你</h2>
+          <h2>编辑个人资料</h2>
+
           <form onSubmit={submit}>
-            {/* ─── 显示名称 ─── */}
-            <label className="form-label-required">显示名称
-              <input required name="displayName" defaultValue={user.displayName} maxLength={60} minLength={2} />
-            </label>
+            {/* ── Section: 基本信息 ── */}
+            <fieldset className="form-section">
+              <legend>基本信息</legend>
 
-            {/* ─── 行业 ─── */}
-            <label>行业 <span className="optional-mark">(选填)</span>
-              <input name="industry" defaultValue={user.industry ?? ""} maxLength={80} placeholder="例如：科技与产业" />
-            </label>
-
-            {/* ─── 公司 / 职位 ─── */}
-            <div className="two-fields">
-              <label>公司 <span className="optional-mark">(选填)</span>
-                <input name="company" defaultValue={user.company ?? ""} maxLength={120} />
+              <label>显示名称 <span className="required">*</span>
+                <input required name="displayName" defaultValue={user.displayName} maxLength={60} minLength={2} placeholder="你的显示名称" />
               </label>
-              <label>职位 <span className="optional-mark">(选填)</span>
-                <input name="jobTitle" defaultValue={user.jobTitle ?? ""} maxLength={80} />
-              </label>
-            </div>
 
-            {/* ─── 头像上传 ─── */}
-            <div className="avatar-field-group">
-              <p className="avatar-field-label">头像</p>
-              <div className="avatar-field-body">
-                <div className="avatar-field-preview" onClick={() => fileInputRef.current?.click()} title="点击上传头像">
+              <div className="form-row-2">
+                <label>行业
+                  <input name="industry" defaultValue={user.industry ?? ""} maxLength={80} placeholder="例如：科技与产业" />
+                </label>
+                <label>职位
+                  <input name="jobTitle" defaultValue={user.jobTitle ?? ""} maxLength={80} placeholder="例如：产品经理" />
+                </label>
+              </div>
+
+              <label>公司
+                <input name="company" defaultValue={user.company ?? ""} maxLength={120} placeholder="例如：某某科技有限公司" />
+              </label>
+            </fieldset>
+
+            {/* ── Section: 头像 ── */}
+            <fieldset className="form-section">
+              <legend>头像</legend>
+              <div className="avatar-row">
+                <div className="avatar-preview-circle" onClick={() => fileInputRef.current?.click()} title="点击更换头像">
                   {avatarPreview
                     ? <img src={avatarPreview} alt="头像预览" referrerPolicy="no-referrer" />
-                    : <span className="avatar-field-placeholder">{userInitial}</span>
+                    : <span className="avatar-placeholder">{userInitial}</span>
                   }
-                  <span className="avatar-field-overlay">更换</span>
                 </div>
-                <div className="avatar-field-actions">
-                  <button type="button" className="avatar-upload-btn" onClick={() => fileInputRef.current?.click()}>
-                    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                    选择图片
+                <div className="avatar-btns">
+                  <button type="button" className="btn-outline" onClick={() => fileInputRef.current?.click()}>
+                    上传图片
                   </button>
                   {avatarPreview && (
-                    <button type="button" className="avatar-remove-btn" onClick={removeAvatar}>移除</button>
+                    <button type="button" className="btn-text-danger" onClick={removeAvatar}>移除头像</button>
                   )}
-                  <p className="avatar-field-hint">支持 JPG/PNG，不超过 2MB</p>
+                  <p className="field-hint">JPG / PNG，不超过 2MB</p>
                 </div>
-                <input ref={fileInputRef} type="file" name="avatarFile" accept="image/png,image/jpeg,image/webp" onChange={handleAvatarFile} style={{display:"none"}} />
+                <input ref={fileInputRef} type="file" name="avatarFile" accept="image/png,image/jpeg,image/webp" onChange={handleAvatarFile} hidden />
               </div>
-            </div>
+            </fieldset>
 
-            {/* ─── 个人简介 ─── */}
-            <label>个人简介 <span className="optional-mark">(选填)</span>
-              <textarea name="bio" defaultValue={user.bio ?? ""} maxLength={280} rows={4} placeholder="用几句话介绍你的关注方向。" />
-            </label>
+            {/* ── Section: 简介 ── */}
+            <fieldset className="form-section">
+              <legend>个人简介</legend>
+              <label>用几句话介绍你的关注方向
+                <textarea name="bio" defaultValue={user.bio ?? ""} maxLength={280} rows={4} placeholder="例如：关注早期投资、SaaS 和企业服务…" />
+              </label>
+            </fieldset>
 
-            {error && <p className="form-error" role="alert">{error}</p>}
-            {saved && (
-              <div className="profile-saved-banner">
-                <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="var(--teal)" stroke="none"/><path d="M8 12l3 3 5-5" stroke="#fff" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                <span>资料已保存</span>
-              </div>
-            )}
-            <div className="profile-form-actions">
-              <button className="auth-submit" type="submit">保存资料 <span>→</span></button>
-              <Link href="/" className="profile-back-link">← 返回首页</Link>
+            {/* ── Feedback ── */}
+            {error && <div className="form-error" role="alert">{error}</div>}
+            {saved && <div className="form-success-banner">✓ 资料已保存</div>}
+
+            {/* ── Actions ── */}
+            <div className="form-actions">
+              <button className="btn-primary" type="submit">保存资料</button>
+              <Link href="/" className="btn-ghost">返回首页</Link>
             </div>
           </form>
         </section>

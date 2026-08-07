@@ -16,7 +16,7 @@ COPY packages packages
 RUN npm run build --workspace=@opc/api
 
 FROM deps AS production-deps
-RUN npm prune --omit=dev
+RUN npm prune --omit=dev && npm install --no-save dotenv
 
 FROM ${NODE_IMAGE} AS runtime
 WORKDIR /app

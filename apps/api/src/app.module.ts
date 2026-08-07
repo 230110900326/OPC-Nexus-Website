@@ -58,12 +58,15 @@ import { DemandBoardConfig } from "./database/entities/demand-board-config.entit
 import { OpcDemandConnect } from "./database/entities/opc-demand-connect.entity";
 import { OpcDemand } from "./database/entities/opc-demand.entity";
 import { DemandsModule } from "./demands/demands.module";
+import { ContentFormattingModule } from "./content-formatting/content-formatting.module";
 import { RequestLoggingInterceptor } from "./common/request-logging.interceptor";
+import { CoversModule } from "./covers/covers.module";
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: [".env", "../../.env"],
       validationSchema: Joi.object({
         API_PORT: Joi.number().port().default(4000), WEB_ORIGIN: Joi.string().uri().default("http://localhost:3000"),
         DB_HOST: Joi.string().hostname().default("localhost"), DB_PORT: Joi.number().port().default(5432),
@@ -98,6 +101,8 @@ import { RequestLoggingInterceptor } from "./common/request-logging.interceptor"
     RankingModule,
     OperationsModule,
     DemandsModule,
+    ContentFormattingModule,
+    CoversModule,
   ],
   controllers: [HealthController],
   providers: [

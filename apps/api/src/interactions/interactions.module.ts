@@ -10,9 +10,18 @@ import { Post } from "../database/entities/post.entity";
 import { User } from "../database/entities/user.entity";
 import { Video } from "../database/entities/video.entity";
 import { Creator } from "../database/entities/creator.entity";
+import { Notification } from "../database/entities/notification.entity";
 import { RankingModule } from "../ranking/ranking.module";
+import { NotificationsModule } from "../notifications/notifications.module";
 import { InteractionsController } from "./interactions.controller";
 import { InteractionsService } from "./interactions.service";
 import { OpcDemand } from "../database/entities/opc-demand.entity";
-@Module({ imports: [AuthModule, RankingModule, TypeOrmModule.forFeature([Like, Favorite, Follow, Article, Post, Comment, User, Video, Creator, OpcDemand])], controllers: [InteractionsController], providers: [InteractionsService], exports: [InteractionsService] })
+
+@Module({
+  imports: [AuthModule, RankingModule, NotificationsModule,
+    TypeOrmModule.forFeature([Like, Favorite, Follow, Article, Post, Comment, User, Video, Creator, OpcDemand, Notification])],
+  controllers: [InteractionsController],
+  providers: [InteractionsService],
+  exports: [InteractionsService],
+})
 export class InteractionsModule {}

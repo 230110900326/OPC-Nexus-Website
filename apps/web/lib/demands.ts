@@ -1,6 +1,6 @@
 import { authorizedRequest, getAccessToken, refreshSession } from "./auth";
 
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000";
+import { apiBaseUrl } from "./api-base";
 type Envelope<T> = { success: boolean; data?: T; error?: { message?: string } };
 
 export type DemandType = "research_collection" | "report_writing" | "field_visit" | "data_organization" | "policy_analysis" | "project_consulting" | "other";

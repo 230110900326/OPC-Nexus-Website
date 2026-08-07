@@ -173,6 +173,7 @@ export default function AuthPage() {
   function validateStep2(input: Record<string, string>): boolean {
     const errs: Record<string, string> = {};
     if (!input.displayName?.trim() || input.displayName.trim().length < 2) errs.displayName = "请输入至少 2 个字符的用户名";
+    else if (input.displayName.trim().length > 8) errs.displayName = "用户名不能超过 8 个字符";
     if (!input.email?.trim() || !emailRegex.test(input.email.trim())) errs.email = "请输入有效的邮箱地址";
     if (!input.password || input.password.length < 8) errs.password = "密码至少 8 位";
     else if (!/(?=.*[a-zA-Z])(?=.*\d)/.test(input.password)) errs.password = "密码需同时包含字母和数字";
@@ -444,7 +445,7 @@ export default function AuthPage() {
 
               {/* ── 第 2 步：基本信息（所有角色） ── */}
               <div style={registerStep === "details" ? undefined : { display: "none" }}>
-                <label className={`form-label-required${fieldErrors.displayName ? " has-error" : ""}`}><span>用户名<span className="required-mark">*</span></span><input required name="displayName" minLength={2} maxLength={60} placeholder="例如：王知行" /></label>
+                <label className={`form-label-required${fieldErrors.displayName ? " has-error" : ""}`}><span>用户名<span className="required-mark">*</span></span><input required name="displayName" minLength={2} maxLength={8} placeholder="2-8个字符" /></label>
                 {fieldErrors.displayName && <span className="auth-field-error">{fieldErrors.displayName}</span>}
                 <label className={`form-label-required${fieldErrors.email ? " has-error" : ""}`}><span>邮箱<span className="required-mark">*</span></span><input required name="email" type="email" autoComplete="email" placeholder="name@company.com" /></label>
                 {fieldErrors.email && <span className="auth-field-error">{fieldErrors.email}</span>}

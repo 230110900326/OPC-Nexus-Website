@@ -6,11 +6,13 @@ node_modules/
 dist/
 coverage/
 /uploads/
-<<<<<<< HEAD
-=======
 /apps/api/uploads/
->>>>>>> 3d0134c839e19d4666f30bffabc3529ddc66c8bd
 *.tsbuildinfo
+
+# Deployment artifacts (contain credentials / large binaries, never commit)
+*.tar
+*.tar.gz
+deploy.bat
 
 # Python
 __pycache__/

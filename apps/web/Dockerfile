@@ -1,11 +1,7 @@
 ARG NODE_IMAGE=node:22-alpine
 FROM ${NODE_IMAGE} AS deps
 WORKDIR /app
-ARG NEXT_PUBLIC_API_BASE_URL=http://localhost:4000
-ARG NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ARG NPM_REGISTRY=https://registry.npmjs.org
-ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
-ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 COPY package.json package-lock.json ./
 COPY apps/api/package.json apps/api/package.json
 COPY apps/web/package.json apps/web/package.json
@@ -14,6 +10,10 @@ COPY packages/ui/package.json packages/ui/package.json
 RUN npm config set registry "${NPM_REGISTRY}" && npm ci
 
 FROM deps AS build
+ARG NEXT_PUBLIC_API_BASE_URL=http://localhost:4000
+ARG NEXT_PUBLIC_SITE_URL=http://localhost:3000
+ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
+ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 COPY apps/web apps/web
 COPY packages packages
 RUN npm run build --workspace=@opc/web

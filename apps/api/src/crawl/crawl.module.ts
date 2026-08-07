@@ -19,4 +19,5 @@ import { CrawlerInternalController } from "./crawler-internal.controller";
 import { CrawlerRuntimeService } from "./crawler-runtime.service";
 import { CrawlerTokenGuard } from "./crawler-token.guard";
 import { CrawlerRunnerService } from "./crawler-runner.service";
-@Module({ imports: [AuthModule, TypeOrmModule.forFeature([CrawlSource, CrawlJob, CrawlLog, CrawlDiscovery, Article, ArticleSource, ContentKeyword, LinkCheck, Creator, CreatorAccount, Video])], controllers: [CrawlController, CrawlerInternalController], providers: [CrawlService, CrawlProcessingService, CrawlerRuntimeService, CrawlerTokenGuard, CrawlerRunnerService] }) export class CrawlModule {}
+import { ContentFormattingModule } from "../content-formatting/content-formatting.module";
+@Module({ imports: [AuthModule, ContentFormattingModule, TypeOrmModule.forFeature([CrawlSource, CrawlJob, CrawlLog, CrawlDiscovery, Article, ArticleSource, ContentKeyword, LinkCheck, Creator, CreatorAccount, Video])], controllers: [CrawlController, CrawlerInternalController], providers: [CrawlService, CrawlProcessingService, CrawlerRuntimeService, CrawlerTokenGuard, CrawlerRunnerService] }) export class CrawlModule {}

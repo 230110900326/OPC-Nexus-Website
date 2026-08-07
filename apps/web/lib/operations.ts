@@ -1,7 +1,7 @@
 import { authorizedRequest } from "./auth";
 import { FeedItem } from "./ranking";
 
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000";
+import { apiBaseUrl } from "./api-base";
 type Envelope<T> = { success: boolean; data?: T; error?: { message?: string } };
 
 export type HomepageConfigKind = "banner" | "module" | "recommendation";

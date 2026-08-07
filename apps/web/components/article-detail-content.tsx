@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Article } from "../lib/content";
+import { Article, formatArticleBody } from "../lib/content";
 import { ArticleCard } from "./article-card";
 
 export function ArticleDetailContent({ article, preview = false }: { article: Article; preview?: boolean }) {
@@ -25,10 +25,9 @@ export function ArticleDetailContent({ article, preview = false }: { article: Ar
       {analysis.matched_terms && analysis.matched_terms.length > 0 && <div className="agent-review-tags">{analysis.matched_terms.slice(0, 12).map((term: string) => <span key={term}>{term}</span>)}</div>}
     </section>}
     {article.coverImageUrl && <img className="detail-cover" src={article.coverImageUrl} alt="" />}
-    <div className="detail-layout">
-      <article className="article-summary"><p>{article.summary}</p>{article.tags.length > 0 && <div className="tag-list">{article.tags.map((tag) => <span key={tag.id}>#{tag.name}</span>)}</div>}</article>
-      {article.type === "policy" && <aside className="policy-facts"><h2>政策要览</h2><dl><div><dt>发文机关</dt><dd>{article.policyIssuer || "—"}</dd></div><div><dt>文号</dt><dd>{article.policyNumber || "—"}</dd></div><div><dt>生效日期</dt><dd>{article.effectiveDate || "—"}</dd></div><div><dt>适用地域</dt><dd>{article.applicableRegion || "—"}</dd></div><div><dt>状态</dt><dd>{article.policyStatus || "—"}</dd></div></dl>{article.policyHighlights && <><h3>政策要点</h3><p>{article.policyHighlights}</p></>}{article.impactIndustries && <><h3>影响行业</h3><p>{article.impactIndustries}</p></>}</aside>}
-    </div>
+    {article.type === "policy" && <aside className="policy-facts-inline"><h2>政策要览</h2><dl><div><dt>发文机关</dt><dd>{article.policyIssuer || "—"}</dd></div><div><dt>文号</dt><dd>{article.policyNumber || "—"}</dd></div><div><dt>生效日期</dt><dd>{article.effectiveDate || "—"}</dd></div><div><dt>适用地域</dt><dd>{article.applicableRegion || "—"}</dd></div><div><dt>状态</dt><dd>{article.policyStatus || "—"}</dd></div></dl>{article.policyHighlights && <><h3>政策要点</h3><p>{article.policyHighlights}</p></>}{article.impactIndustries && <><h3>影响行业</h3><p>{article.impactIndustries}</p></>}</aside>}
+    {article.content && <section className="article-body" dangerouslySetInnerHTML={{ __html: formatArticleBody(article.content) }} />}
+    {article.tags.length > 0 && <div className="tag-list">{article.tags.map((tag) => <span key={tag.id}>#{tag.name}</span>)}</div>}
     <section className="source-panel"><p>本文为信息摘要，仅供信息交流，不构成投资建议。来源与原文版权归原权利人所有。</p><a href={article.originalUrl} target="_blank" rel="noopener noreferrer">阅读原文 <span>↗</span></a></section>
     {!preview && article.related && article.related.length > 0 && <section className="related-section"><p className="eyebrow">RELATED SIGNALS</p><h2>继续阅读</h2><div className="article-grid">{article.related.map((item) => <ArticleCard article={item} key={item.id} />)}</div></section>}
   </main>;

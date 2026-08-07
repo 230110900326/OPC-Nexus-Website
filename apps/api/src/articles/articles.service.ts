@@ -2,7 +2,7 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException }
 import { InjectRepository } from "@nestjs/typeorm";
 import { Brackets, In, Repository } from "typeorm";
 import { AuthUser } from "../auth/auth-user.interface";
-import { Article, ArticleStatus } from "../database/entities/article.entity";
+import { Article, ArticleStatus, ArticleType } from "../database/entities/article.entity";
 import { ArticleSource } from "../database/entities/article-source.entity";
 import { Category } from "../database/entities/category.entity";
 import { Tag } from "../database/entities/tag.entity";
@@ -51,7 +51,7 @@ export class ArticlesService {
 
   async create(input: CreateArticleDto, actor: AuthUser) {
     await this.ensureSlug(input.slug);
-    const article = this.articles.create({ slug: input.slug.trim(), title: input.title.trim(), summary: input.summary.trim(), type: input.type, originalUrl: input.originalUrl, coverImageUrl: input.coverImageUrl ?? null, publishedAt: input.publishedAt ? new Date(input.publishedAt) : null, operator: { id: actor.id } as User, ...this.policyFieldsForCreate(input) });
+    const article = this.articles.create({ slug: input.slug.trim(), title: input.title.trim(), summary: input.summary.trim(), type: input.type, originalUrl: input.originalUrl, coverImageUrl: input.coverImageUrl ?? `/api/covers/${input.slug.trim()}`, publishedAt: input.publishedAt ? new Date(input.publishedAt) : null, operator: { id: actor.id } as User, ...this.policyFieldsForCreate(input) });
     article.category = input.categoryId ? await this.category(input.categoryId) : null;
     article.tags = await this.resolveTags(input.tagIds ?? []);
     article.sources = this.normalizeSources(input.sources ?? []) as ArticleSource[];
@@ -90,4 +90,20 @@ export class ArticlesService {
   private async category(id: string) { const value = await this.categories.findOneBy({ id }); if (!value) throw new NotFoundException("分类不存在"); return value; }
   private async resolveTags(ids: string[]) { const values = ids.length ? await this.tags.findBy({ id: In(ids) }) : []; if (values.length !== ids.length) throw new BadRequestException("包含不存在的标签"); return values; }
   private async ensureSlug(slug: string) { if (await this.articles.exists({ where: { slug } })) throw new ConflictException("文章 slug 已存在"); }
+
+  /** 存量数据回填（幂等，可重复执行）：① 把被智能体识别为政策但仍为 news 的文章升级为 policy；② 给缺失封面图的文章写入自动生成封面 URL。 */
+  async backfillCoversAndPolicy() {
+    const policyResult = await this.articles.createQueryBuilder("article")
+      .update(Article)
+      .set({ type: ArticleType.POLICY })
+      .where("article.type = :news", { news: ArticleType.NEWS })
+      .andWhere("article.agent_analysis->>'category' IN (:...categories)", { categories: ["policy", "policy_interpretation"] })
+      .execute();
+    const coverResult = await this.articles.createQueryBuilder("article")
+      .update(Article)
+      .set({ coverImageUrl: () => "'/api/covers/' || article.slug" })
+      .where("article.cover_image_url IS NULL OR article.cover_image_url = ''")
+      .execute();
+    return { policyReclassified: policyResult.affected ?? 0, coversFilled: coverResult.affected ?? 0 };
+  }
 }

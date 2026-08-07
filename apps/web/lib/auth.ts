@@ -1,4 +1,4 @@
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000";
+import { apiBaseUrl } from "./api-base";
 const accessTokenKey = "opc_access_token";
 const demoUserKey = "opc_demo_user";
 let refreshPromise: Promise<Account> | null = null;
@@ -85,6 +85,16 @@ async function requestSessionRefresh() {
   const data = await parse<{ accessToken: string; user: Account }>(response);
   setAccessToken(data.accessToken);
   return data.user;
+}
+
+export async function getMyProfile(): Promise<Account> {
+  const token = getAccessToken();
+  if (!token) throw new ApiError("未登录", 401);
+  const response = await fetch(`${apiBaseUrl}/auth/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+    credentials: "include",
+  });
+  return parse<Account>(response);
 }
 
 export function refreshSession(): Promise<Account> {

@@ -117,7 +117,7 @@ function RecommendationSection({ title, items }: { title: string; items: FeedIte
 
 function PolicySection({ title, items }: { title: string; items: FeedItem[] }) { return <section className="home-section"><SectionHeading index="POLICY / RADAR" title={title} href="/policies" link="政策频道" />{items.length ? <div className="home-card-list">{items.map((item) => <ContentRowCard key={item.id} item={item} />)}</div> : <EmptyState text="暂时没有政策精选" help="发布政策内容后，本模块会按热度自动补位。" />}</section>; }
 
-function VideoSection({ title, items }: { title: string; items: FeedItem[] }) { return <section className="home-section video-section"><SectionHeading index="VIDEO / WATCH" title={title} href="/videos" link="视频频道" />{items.length ? <div className="video-feature-grid">{items.map((item, index) => <article className={index === 0 ? "featured" : ""} key={item.id}><SmartLink href={item.url}><div className="video-cover" style={item.coverImageUrl ? { backgroundImage: `url(${item.coverImageUrl})` } : undefined}><span>PLAY</span><em>{item.heat.toFixed(1)}</em></div><p>{item.source}</p><h3>{item.title}</h3></SmartLink></article>)}</div> : <EmptyState text="热门视频仍在同步" help="授权视频入库并完成指标同步后会显示在这里。" />}</section>; }
+function VideoSection({ title, items }: { title: string; items: FeedItem[] }) { return <section className="home-section video-section"><SectionHeading index="VIDEO / WATCH" title={title} href="/videos" link="视频频道" />{items.length ? <div className="home-card-list">{items.map((item) => <ContentRowCard key={item.id} item={item} />)}</div> : <EmptyState text="热门视频仍在同步" help="授权视频入库并完成指标同步后会显示在这里。" />}</section>; }
 
 function DiscussionSection({ title, items }: { title: string; items: FeedItem[] }) { return <section className="home-section"><SectionHeading index="COMMUNITY / TALK" title={title} href="/community" link="进入社区" />{items.length ? <div className="home-card-list">{items.map((item) => <ContentRowCard key={item.id} item={item} />)}</div> : <EmptyState text="社区还没有升温的话题" help="新讨论发布后会按真实互动进入这里。" />}</section>; }
 
@@ -126,7 +126,7 @@ function ContentRowCard({ item }: { item: FeedItem }) {
     <article className="home-card">
       <SmartLink href={item.url} className="home-card-image">
         {item.coverImageUrl ? (
-          <img src={item.coverImageUrl} alt="" loading="lazy" />
+          <img src={proxyCover(item.coverImageUrl) ?? item.coverImageUrl} alt="" loading="lazy" />
         ) : (
           <span className="home-card-image-placeholder">{contentLabels[item.contentType]}</span>
         )}
@@ -157,5 +157,10 @@ function CreatorSection({ title, items }: { title: string; items: HomepageCreato
 function EmptyState({ text, help }: { text: string; help: string }) { return <div className="home-empty"><strong>{text}</strong><span>{help}</span></div>; }
 function TrackedLink({ item, children }: { item: HomepagePublicConfig; children: React.ReactNode }) { const href = item.targetUrl || "/discover"; return <SmartLink className="focus-action" href={href} onClick={() => void trackRecommendation([item.trackingId], "click").catch(() => undefined)}>{children}</SmartLink>; }
 function SmartLink({ href, children, className, onClick }: { href: string; children: React.ReactNode; className?: string; onClick?: () => void }) { return href.startsWith("/") ? <Link className={className} href={href} onClick={onClick}>{children}</Link> : <a className={className} href={href} target="_blank" rel="noreferrer" onClick={onClick}>{children}</a>; }
+function proxyCover(url: string | null): string | null {
+  if (!url) return null;
+  // Rewrite Bilibili CDN URLs to our proxy
+  return url.replace(/https?:\/\/i\d+\.hdslb\.com\/bfs\//, "/bcovers/");
+}
 function formatDate(value: string) { return new Date(value).toLocaleDateString("zh-CN", { month: "2-digit", day: "2-digit" }); }
 function formatDay(value: string) { return new Date(value).toLocaleDateString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit" }); }

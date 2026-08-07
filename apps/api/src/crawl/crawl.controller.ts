@@ -28,6 +28,7 @@ export class CrawlController {
   @Post("run") run(@Body() input: RunCrawlNowDto) { return this.runner.runNow(input.sourceId).then((data) => ({ success: true, data })); }
   @Patch(":id") update(@Param("id", ParseUUIDPipe) id: string, @Body() input: UpdateCrawlSourceDto) { return this.crawl.update(id, input).then((data) => ({ success: true, data })); }
   @Get("review/queue") queue() { return this.processing.reviewQueue().then((data) => ({ success: true, data })); }
+  @Post("review/publish-all") publishAll() { return this.processing.publishAll().then((data) => ({ success: true, data })); }
   @Post("review/ingest") ingest(@Body() input: IngestCrawlArticleDto) { return this.processing.ingest(input).then((data) => ({ success: true, data })); }
   @Post("review/:id/reject") reject(@Param("id", ParseUUIDPipe) id: string) { return this.processing.reject(id).then((data) => ({ success: true, data })); }
   @Post("review/:id/merge") merge(@Param("id", ParseUUIDPipe) id: string, @Body() input: MergeCrawlArticleDto) { return this.processing.merge(id, input.targetArticleId).then((data) => ({ success: true, data })); }

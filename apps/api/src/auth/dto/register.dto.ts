@@ -11,7 +11,7 @@ export class RegisterDto {
   password!: string;
 
   @IsString()
-  @Length(2, 60)
+  @Length(2, 8)
   displayName!: string;
 
   @IsOptional()

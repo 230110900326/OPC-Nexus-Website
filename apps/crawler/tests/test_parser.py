@@ -12,3 +12,14 @@ def test_parse_article_extracts_metadata_and_ignores_navigation():
 def test_only_allowlisted_domains_can_be_requested():
     assert is_allowed_url("http://127.0.0.1:8099/article.html", {"127.0.0.1", "localhost"})
     assert not is_allowed_url("https://example.com/article", {"127.0.0.1", "localhost"})
+
+def test_parse_article_falls_back_to_content_image_without_og_image():
+    html = """<html><head><title>没有 og 图片的标题</title></head><body><img src="/logo.png" width="1" height="1"/><img data-src="http://cdn.test/photo.jpg"/><p>正文内容</p></body></html>"""
+    article = parse_article(html, "http://127.0.0.1:8099/article")
+    # logo 被过滤，正文第一张有效图片作为封面兜底
+    assert article.image_url == "http://cdn.test/photo.jpg"
+
+def test_parse_article_filters_icons_when_no_usable_image():
+    html = """<html><head><title>只有图标</title></head><body><img src="/favicon.png"/><p>正文内容</p></body></html>"""
+    article = parse_article(html, "http://127.0.0.1:8099/article")
+    assert article.image_url is None

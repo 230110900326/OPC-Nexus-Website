@@ -11,5 +11,6 @@ export class UsersController {
   constructor(private readonly users: UsersService) {}
   @Get("me") async getMe(@AuthenticatedUser() user: AuthUser) { return { success: true, data: await this.users.getMe(user.id) }; }
   @Patch("me") async updateMe(@AuthenticatedUser() user: AuthUser, @Body() input: UpdateProfileDto) { return { success: true, data: await this.users.updateMe(user.id, input) }; }
+  @Get("me/posts") async myPosts(@AuthenticatedUser() user: AuthUser) { return { success: true, data: await this.users.myPosts(user.id) }; }
   @Get(":id") async publicProfile(@Param("id", ParseUUIDPipe) id: string) { return { success: true, data: await this.users.publicProfile(id) }; }
 }

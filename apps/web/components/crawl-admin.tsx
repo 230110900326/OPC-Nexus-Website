@@ -12,6 +12,7 @@ import {
   listCrawlJobLogs,
   listCrawlSources,
   mergeArticle,
+  publishAllReview,
   rejectArticle,
   updateCrawlSource,
   type CrawlJob,
@@ -79,6 +80,11 @@ export function CrawlAdmin() {
         </div>
         {error && <div className="ops-error" role="alert">{error}</div>}
         {success && <div className="ops-success" role="status">{success}</div>}
+        <div className="crawl-schedule-bar">
+          <span className="schedule-dot" /> <strong>定时采集已开启</strong>
+          <span>每 20 分钟执行一次（全天候）</span>
+          <span style={{marginLeft:'auto',opacity:.7}}>服务器 Cron 驱动</span>
+        </div>
         <div className="demand-admin-tabs" style={{ marginTop: 30 }}>
           {(["sources", "jobs", "review"] as Tab[]).map((t) => (
             <button key={t} className={tab === t ? "active" : ""} onClick={() => { setTab(t); clearMessages(); }}>
@@ -438,7 +444,30 @@ function ReviewPanel({ onError, onSuccess }: { onError: (m: string) => void; onS
     <div>
       <div className="demand-admin-toolbar">
         <span style={{ color: "var(--ink-soft)", fontSize: 12 }}>{queue.length} 篇待审核</span>
-        <button onClick={fetchQueue}>刷新</button>
+        <div style={{ display: "flex", gap: 8 }}>
+          {queue.length > 0 && (
+            <button
+              onClick={async () => {
+                if (!confirm(`确定要将全部 ${queue.length} 篇待审核文章一键发布吗？`)) return;
+                setActionLoading(true);
+                try {
+                  const result = await publishAllReview();
+                  onSuccess(`已成功发布 ${result.published} 篇文章`);
+                  fetchQueue();
+                } catch (e: any) {
+                  onError(e?.message ?? "批量发布失败");
+                } finally {
+                  setActionLoading(false);
+                }
+              }}
+              disabled={actionLoading}
+              style={{ background: "var(--accent)", color: "#fff", border: "none", borderRadius: 4, padding: "4px 14px", cursor: "pointer", fontSize: 13 }}
+            >
+              🚀 一键发布全部
+            </button>
+          )}
+          <button onClick={fetchQueue}>刷新</button>
+        </div>
       </div>
 
       {loading ? (

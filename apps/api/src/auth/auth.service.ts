@@ -137,6 +137,10 @@ export class AuthService {
     return { message: "如果该邮箱已注册，我们会发送一封密码重置邮件。" };
   }
 
+  async isEmailRegistered(email: string): Promise<boolean> {
+    return this.users.exists({ where: { email: email.trim().toLowerCase() } });
+  }
+
   async resetPassword(dto: ResetPasswordDto) {
     const user = await this.users.createQueryBuilder("user")
       .addSelect("user.passwordResetToken")
@@ -158,6 +162,13 @@ export class AuthService {
       passwordResetToken: null,
       passwordResetExpires: null,
     });
+
+    // Send confirmation email (best-effort, don't fail the reset if email fails)
+    try {
+      await this.mail.sendPasswordChangedEmail(user.email);
+    } catch (error) {
+      this.logger.error(`Failed to send password-changed email to ${user.email}: ${(error as Error).message}`);
+    }
   }
 
   private async issueSession(user: User) {

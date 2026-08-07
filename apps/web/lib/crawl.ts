@@ -133,6 +133,9 @@ export const ingestArticle = (input: IngestCrawlArticleInput) =>
     { method: "POST", body: JSON.stringify(input) }
   );
 
+export const publishAllReview = () =>
+  authorizedRequest<{ published: number }>("/admin/crawl-sources/review/publish-all", { method: "POST" });
+
 export const rejectArticle = (id: string) =>
   authorizedRequest<ReviewArticle>(`/admin/crawl-sources/review/${id}/reject`, {
     method: "POST",

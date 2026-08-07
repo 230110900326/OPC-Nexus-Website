@@ -1,13 +1,35 @@
 import { authorizedRequest, getAccessToken, refreshSession } from "./auth";
 
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000";
+import { apiBaseUrl } from "./api-base";
 export type ArticleType = "news" | "policy" | "insight";
 export type ArticleStatus = "draft" | "review" | "published" | "offline";
 export type Tag = { id: string; name: string; slug: string };
 export type Category = { id: string; name: string; slug: string; sortOrder?: number; isActive?: boolean; children?: Category[] };
 export type Source = { id?: string; name: string; url: string; isPrimary: boolean };
 export type AgentAnalysis = { decision?: "relevant" | "review" | "irrelevant"; relevance_score?: number; confidence?: "high" | "medium" | "low"; relation_level?: string; reason?: string; matched_terms?: string[]; key_points?: string[]; analysis_mode?: string; agent_version?: string };
-export type Article = { id: string; slug: string; title: string; summary: string; coverImageUrl: string | null; type: ArticleType; status: ArticleStatus; originalUrl: string; publishedAt: string | null; heatScore: number | string; agentAnalysis?: AgentAnalysis; category: Category | null; tags: Tag[]; sources: Source[]; policyIssuer: string | null; policyNumber: string | null; effectiveDate: string | null; applicableRegion: string | null; policyStatus: string | null; policyHighlights: string | null; impactIndustries: string | null; related?: Article[] };
+export type Article = { id: string; slug: string; title: string; summary: string; content: string; coverImageUrl: string | null; type: ArticleType; status: ArticleStatus; originalUrl: string; publishedAt: string | null; heatScore: number | string; agentAnalysis?: AgentAnalysis; category: Category | null; tags: Tag[]; sources: Source[]; policyIssuer: string | null; policyNumber: string | null; effectiveDate: string | null; applicableRegion: string | null; policyStatus: string | null; policyHighlights: string | null; impactIndustries: string | null; related?: Article[] };
+function stripSourceFooters(text: string): string {
+  // Remove source attribution lines commonly scraped as content
+  return text
+    .replace(/文章来源[：:]\s*\S+[\s\S]*?(?=<|$)/g, "")
+    .replace(/原文地址[：:]\s*https?:\/\/\S+/g, "")
+    .replace(/来源[：:]\s*\S+/g, "")
+    .replace(/（\w+\.\w+）旗下[一-龥a-zA-Z]+平台\s*/g, "")
+    .replace(/[一-龥]+（\d+\.\w+）旗下[一-龥a-zA-Z、]+平台\s*/g, "")
+    .replace(/[｜|]\s*[0-9A-Z]{5,}\s*[｜|]/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+export function formatArticleBody(text: string): string {
+  if (!text) return "";
+  // Strip source footers before rendering
+  const cleaned = stripSourceFooters(text);
+  // If already HTML-formatted (contains HTML tags), return as-is after cleaning
+  if (/<(p|div|ul|li|strong|span|h[1-6]|br|em)\b[^>]*>/i.test(cleaned)) return cleaned;
+  // Plain text → convert newlines to paragraphs
+  return cleaned.split(/\n\n+/).filter((p) => p.trim()).map((p) => `<p>${p.trim().replace(/\n/g, "<br>")}</p>`).join("");
+}
 export type ArticleList = { items: Article[]; pagination: { page: number; limit: number; total: number; totalPages: number } };
 export type SearchResult = { id: string; contentType: "article" | "post" | "video"; subtype: string; title: string; excerpt: string; url: string; coverImageUrl: string | null; category: string | null; source: string | null; publishedAt: string | null };
 export type SearchResponse = { items: SearchResult[]; pagination: ArticleList["pagination"]; availableTypes: string[] };

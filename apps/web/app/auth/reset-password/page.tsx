@@ -1,11 +1,11 @@
 "use client";
 
-import { FormEvent, Suspense, useState } from "react";
+import { FormEvent, Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BrandLogo } from "../../../components/brand-logo";
 
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000";
+import { apiBaseUrl } from "../../../lib/api-base";
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -18,6 +18,9 @@ function ResetPasswordForm() {
   const [pending, setPending] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   const valid = token.length >= 64 && userId.length > 0;
 
@@ -55,17 +58,27 @@ function ResetPasswordForm() {
     );
   }
 
+  if (!mounted) {
+    return (
+      <section className="auth-card" aria-labelledby="auth-heading">
+        <div className="auth-tabs"><span className="active">重置密码</span></div>
+        <h2 id="auth-heading">正在加载…</h2>
+        <p className="auth-help">请稍候，页面正在准备中。</p>
+      </section>
+    );
+  }
+
   return (
     <section className="auth-card" aria-labelledby="auth-heading">
       <div className="auth-tabs"><span className="active">重置密码</span></div>
       <h2 id="auth-heading">设置新密码</h2>
       <p className="auth-help">请输入你的新密码。</p>
-      <form onSubmit={submit} noValidate>
+      <form onSubmit={submit} method="post" action="#" noValidate>
         <label>新密码<input required name="password" type="password" minLength={8} autoComplete="new-password" placeholder="至少 8 位，包含字母和数字" value={password} onChange={(e) => setPassword(e.target.value)} /></label>
         <label>确认新密码<input required name="confirmPassword" type="password" minLength={8} autoComplete="new-password" placeholder="请再次输入新密码" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} /></label>
         {error && <p className="form-error" role="alert">{error}</p>}
         {success && <p className="form-success" role="status">{success}</p>}
-        <button className="auth-submit" disabled={pending}>{pending ? "正在处理…" : "重置密码"}<span>→</span></button>
+        <button className="auth-submit" type="submit" disabled={pending || !mounted}>{pending ? "正在处理…" : "重置密码"}<span>→</span></button>
       </form>
       <p className="auth-back-link">
         <Link href="/auth">← 返回登录</Link>

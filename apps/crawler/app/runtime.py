@@ -9,6 +9,7 @@ from urllib.parse import urlparse
 import httpx
 
 from .api_client import ApiClient
+from .bilibili_adapter import discover_bilibili_videos
 from .config import Settings
 from .discovery import discover_feed_urls, discover_html_urls
 from .intelligence import NewsIntelligence
@@ -31,7 +32,11 @@ class CrawlRunner:
             raise ValueError("requested crawl source is not enabled and authorized")
         results: list[dict[str, Any]] = []
         for source in selected:
-            results.append(self._run_source(source))
+            try:
+                results.append(self._run_source(source))
+            except Exception as error:
+                logger.exception("crawl_source_fatal source_id=%s error=%s", source.get("id"), str(error)[:500])
+                results.append({"sourceId": source.get("id"), "status": "fatal", "error": str(error)[:500]})
         return {"sourceCount": len(selected), "runs": results}
 
     def _run_source(self, source: dict[str, Any]) -> dict[str, Any]:
@@ -76,11 +81,20 @@ class CrawlRunner:
             "agentVersion": intelligence_stats["agentVersion"],
             "errorMessage": error_message,
         }
-        result = self.api.report_run(payload)
-        logger.info("crawl_source_completed source_id=%s result=%s", source_id, result)
+        result = None
+        try:
+            result = self.api.report_run(payload)
+            logger.info("crawl_source_completed source_id=%s result=%s", source_id, result)
+        except Exception as api_error:
+            logger.warning("crawl_source_api_failed source_id=%s error=%s", source_id, str(api_error)[:500])
+            result = {"sourceId": source_id, "status": "api_error", "error": str(api_error)[:500]}
         return result
 
     def _discover_urls(self, entry_url: str, domain: str, fetch_method: str) -> list[str]:
+        # Bilibili adapter — uses API instead of page scraping
+        if fetch_method == "adapter" and "bilibili" in domain:
+            urls = discover_bilibili_videos(entry_url, self.settings.request_timeout_seconds)
+            return list(dict.fromkeys(urls))
         document, response_url = self._fetch(entry_url, domain)
         allowed = {domain}
         if fetch_method in {"rss", "sitemap"}:

@@ -15,7 +15,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       const body = await response.json() as Envelope;
       if (response.ok && body.success && body.data) {
         const metadata = pageMetadata({ title: body.data.title, description: body.data.summary, path, type: "article" });
-        if (body.data.coverImageUrl && metadata.openGraph && typeof metadata.openGraph === "object") metadata.openGraph.images = [body.data.coverImageUrl];
+        if (body.data.coverImageUrl && metadata.openGraph && typeof metadata.openGraph === "object") {
+          // 自动生成的封面是 /api/covers/... 相对路径，社交平台需要绝对 URL
+          const cover = body.data.coverImageUrl;
+          metadata.openGraph.images = [/^https?:\/\//i.test(cover) ? cover : `${(process.env.NEXT_PUBLIC_SITE_URL || "").replace(/\/$/, "")}${cover.startsWith("/") ? cover : `/${cover}`}`];
+        }
         return metadata;
       }
     } catch {

@@ -1,5 +1,6 @@
 import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
+import { json } from "express";
 import cookieParser = require("cookie-parser");
 import { AppModule } from "./app.module";
 import { HttpExceptionFilter } from "./common/http-exception.filter";
@@ -12,6 +13,7 @@ async function bootstrap() {
   server.set("trust proxy", 1);
   const allowedOrigins = (process.env.WEB_ORIGIN ?? "http://localhost:3000").split(",").map((value) => value.trim()).filter(Boolean);
   app.enableCors({ origin: allowedOrigins, credentials: true, methods: ["GET", "HEAD", "POST", "PATCH", "DELETE", "OPTIONS"], allowedHeaders: ["Authorization", "Content-Type", "X-Requested-With"], maxAge: 86400 });
+  app.use(json({ limit: "10mb" }));
   app.use(cookieParser());
   app.use((_request: Request, response: Response, next: NextFunction) => {
     response.setHeader("X-Content-Type-Options", "nosniff");

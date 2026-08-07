@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Account, getDemoUser, isDemoSession, refreshSession, signOut } from "../lib/auth";
+import { Account, getDemoUser, getMyProfile, isDemoSession, refreshSession, signOut, getAccessToken } from "../lib/auth";
+import { apiBaseUrl } from "../lib/api-base";
 import { BrandLogo } from "./brand-logo";
 
 const navigation = [
@@ -38,9 +39,10 @@ export function SiteHeader() {
       setUser(demoUser);
       return;
     }
-    refreshSession()
+    // Try access token first (works regardless of cookie path), fall back to cookie-based refresh
+    getMyProfile()
       .then(setUser)
-      .catch(() => setUser(null));
+      .catch(() => refreshSession().then(setUser).catch(() => setUser(null)));
   }, [pathname]);
 
   // Listen for demo profile updates from other components
@@ -90,12 +92,7 @@ export function SiteHeader() {
               {user.roles.some(r => ["editor", "operator", "admin"].includes(r)) && (
                 <Link href="/admin/dashboard">运营台</Link>
               )}
-              <Link className="notification-bell" href="/notifications" aria-label="通知">
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-                </svg>
-              </Link>
+              <NotificationBell />
               <div className="user-menu-container" ref={userMenuRef}>
                 <button
                   className="user-menu-trigger"
@@ -129,6 +126,14 @@ export function SiteHeader() {
                       <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.9 0 3.5 1.6 3.5 3.5S13.9 13 12 13s-3.5-1.6-3.5-3.5S10.1 6 12 6zm7 13H5v-.8c0-1.1 2.7-2 7-2s7 .9 7 2v.8z" fill="currentColor"/></svg>
                       我的需求
                     </Link>
+                    <Link href="/account/posts" className="user-menu-item" role="menuitem" onClick={() => setUserMenuOpen(false)}>
+                      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.2L4 17.2V4h16v12z" fill="currentColor"/></svg>
+                      我的讨论
+                    </Link>
+                    <Link href="/account/history" className="user-menu-item" role="menuitem" onClick={() => setUserMenuOpen(false)}>
+                      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M13 3a9 9 0 0 0-9 9H1l3.9 3.9L8.8 12H6c0-3.9 3.1-7 7-7s7 3.1 7 7-3.1 7-7 7c-1.9 0-3.7-.8-5-2l-1.4 1.4C8.2 19.8 10.5 21 13 21c5 0 9-4 9-9s-4-9-9-9zm-1 5v5l4.3 2.5.7-1.2-3.5-2.1V8H12z" fill="currentColor"/></svg>
+                      浏览历史
+                    </Link>
                     <div className="user-menu-divider" />
                     <button className="user-menu-item user-menu-logout" role="menuitem" onClick={handleSignOut}>
                       <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M17 7l-5 5 5 5m-5-5H3m10-7h2a3 3 0 013 3v10a3 3 0 01-3 3h-2" stroke="currentColor" fill="none" strokeWidth="2"/></svg>
@@ -140,12 +145,7 @@ export function SiteHeader() {
             </>
           ) : (
             <>
-              <Link className="notification-bell" href="/notifications" aria-label="通知">
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-                </svg>
-              </Link>
+              <NotificationBell />
               <Link className="login-button" href="/auth">登录 / 注册</Link>
             </>
           )}
@@ -196,4 +196,30 @@ export function SiteHeader() {
         </div>
       </div>
   </>;
+}
+
+function NotificationBell() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    const token = getAccessToken();
+    if (!token) return;
+    fetch(`${apiBaseUrl}/notifications/unread-count`, {
+      headers: { Authorization: `Bearer ${token}` },
+      credentials: "include",
+    })
+      .then((r) => r.json())
+      .then((d) => { if (d.success) setCount(d.data.count); })
+      .catch(() => {});
+  }, []);
+
+  return (
+    <Link className="notification-bell has-badge" href="/notifications" aria-label={`通知${count ? `（${count} 条未读）` : ""}`}>
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      {count > 0 && <span className="notification-badge">{count > 99 ? "99+" : count}</span>}
+    </Link>
+  );
 }
