@@ -63,8 +63,9 @@ export default function VideoDetailPage() {
         {bvid ? (
           <div className="video-player-wrapper">
             <iframe
-              src={`/player/player.html?bvid=${bvid}&high_quality=1&autoplay=0`}
+              src={`https://player.bilibili.com/player.html?bvid=${bvid}&high_quality=1&autoplay=0`}
               allowFullScreen
+              allow="autoplay; encrypted-media; fullscreen"
               className="video-player-iframe"
               title={title}
             />
