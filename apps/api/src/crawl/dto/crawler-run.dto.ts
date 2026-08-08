@@ -18,6 +18,8 @@ export class CrawledVideoDto {
   @IsOptional() @IsUrl({ require_tld: false }) coverUrl?: string;
   @IsOptional() @IsDateString() publishedAt?: string;
   @IsOptional() @IsString() @MaxLength(2000) description?: string;
+  @IsOptional() @IsInt() @Min(0) durationSeconds?: number;
+  @IsOptional() @IsObject() platformMetrics?: Record<string, number>;
 }
 
 export class CrawlerRunDto {

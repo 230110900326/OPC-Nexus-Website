@@ -175,17 +175,16 @@ class CrawlRunner:
             elif not published_at:
                 published_at = None
 
+            cover_url = item.get("coverUrl", "") or None  # empty str → null
             return {
                 "title": title[:240],
                 "originalUrl": url,
                 "canonicalUrl": url,
-                "coverUrl": item.get("coverUrl", ""),
-                "publishedAt": published_at,
-                "description": item.get("description", "")[:2000],
+                "coverUrl": cover_url,
+                "publishedAt": published_at or None,
+                "description": (item.get("description", "") or "")[:2000] or None,
                 "durationSeconds": int(item.get("durationSeconds", 0)),
                 "platformMetrics": platform_metrics,
-                "_platform": item.get("platform", ""),
-                "_author": item.get("author", ""),
             }
 
         # Legacy: string URL — fetch HTTP page
@@ -197,10 +196,10 @@ class CrawlRunner:
         return {
             "title": article.title[:240],
             "originalUrl": response_url,
-            "canonicalUrl": article.canonical_url,
-            "coverUrl": article.image_url,
-            "publishedAt": article.published_at,
-            "description": article.body[:2000],
+            "canonicalUrl": article.canonical_url or response_url,
+            "coverUrl": article.image_url or None,
+            "publishedAt": article.published_at or None,
+            "description": article.body[:2000] or None,
             "durationSeconds": 0,
             "platformMetrics": {},
         }
