@@ -6,8 +6,8 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PIP_INDEX_URL=${PIP_INDEX_URL}
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1
-# Playwright 浏览器从 npmmirror 下载（国内服务器）
-ENV PLAYWRIGHT_DOWNLOAD_HOST=https://cdn.npmmirror.com/binaries/playwright/
+# Playwright 浏览器下载源（npmmirror CDN 无此文件；官方 ms 源国内可访问，实测 200）
+ENV PLAYWRIGHT_DOWNLOAD_HOST=https://playwright.download.prss.microsoft.com
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 COPY apps/crawler/requirements.txt ./
 RUN pip install --no-cache-dir --retries 5 --timeout 120 -r requirements.txt \
