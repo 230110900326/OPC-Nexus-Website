@@ -126,7 +126,7 @@ services:
       context: ..
       dockerfile: apps/crawler/Dockerfile
       args:
-        PYTHON_IMAGE: ${PYTHON_IMAGE:-python:3.11-slim}
+        PYTHON_IMAGE: ${PYTHON_IMAGE:-python:3.11-slim-bookworm}
     restart: unless-stopped
     init: true
     profiles: ["full"]
