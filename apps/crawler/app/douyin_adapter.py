@@ -2,11 +2,13 @@
 
 抖音网页端 JS 渲染且搜索 API 需要 a_bogus 签名。优先用无头浏览器渲染后提取；
 若浏览器仍拿不到（签名拦截），则返回空。纯 HTTP 基本无效。
+返回结构化视频元数据。
 """
 from __future__ import annotations
 
 import logging
 import re
+from typing import Any
 from urllib.parse import quote
 
 import httpx
@@ -21,7 +23,6 @@ TECH_KEYWORDS = [
     "科技", "创业", "投资", "财经", "自动驾驶",
 ]
 
-# 抖音视频 id 为 19 位数字
 VIDEO_ID_RE = re.compile(r"/video/(\d{19})")
 VIDEO_ID_INLINE_RE = re.compile(r'"aweme_id"\s*:\s*"?(\d{19})')
 
@@ -35,10 +36,10 @@ def _extract_ids(text: str) -> list[str]:
     return list(dict.fromkeys(ids))
 
 
-def discover_douyin_videos(entry_url: str, timeout: float = 12.0, browser=None) -> list[str]:
+def discover_douyin_videos(entry_url: str, timeout: float = 12.0, browser=None) -> list[dict[str, Any]]:
     """尽力尝试搜索抖音视频。browser 为可选的无头浏览器实例。"""
     try:
-        all_ids: list[str] = []
+        all_items: list[dict[str, Any]] = []
         seen: set[str] = set()
         for keyword in TECH_KEYWORDS[:6]:
             url = DOUYIN_SEARCH_URL.format(keyword=quote(keyword))
@@ -60,10 +61,21 @@ def discover_douyin_videos(entry_url: str, timeout: float = 12.0, browser=None) 
             for item_id in ids:
                 if item_id not in seen:
                     seen.add(item_id)
-                    all_ids.append(item_id)
-        urls = [DOUYIN_VIDEO_BASE.format(item_id=item_id) for item_id in all_ids]
-        logger.info("douyin_adapter discovered %d videos", len(urls))
-        return urls
+                    all_items.append({
+                        "url": DOUYIN_VIDEO_BASE.format(item_id=item_id),
+                        "title": "",
+                        "coverUrl": "",
+                        "durationSeconds": 0,
+                        "views": 0,
+                        "likes": 0,
+                        "comments": 0,
+                        "publishedAt": "",
+                        "author": "",
+                        "description": "",
+                        "platform": "douyin",
+                    })
+        logger.info("douyin_adapter discovered %d videos", len(all_items))
+        return all_items
     except Exception as exc:
         logger.warning("douyin_adapter failed: %s", str(exc)[:200])
         return []

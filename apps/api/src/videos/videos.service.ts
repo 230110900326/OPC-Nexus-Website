@@ -22,6 +22,7 @@ export class VideosService { constructor(@InjectRepository(Creator) private read
     if (input.platform) query.andWhere("video.platform = :platform", { platform: input.platform });
     if (input.industry) query.andWhere(":industry = ANY (SELECT jsonb_array_elements_text(creator.industries))", { industry: input.industry });
     if (input.sort === "hot") query.addSelect("(COALESCE((video.platform_metrics->>'views')::int,0) + COALESCE((video.platform_metrics->>'likes')::int,0)*10)", "popularity_score").orderBy("popularity_score", "DESC");
+    else if (input.sort === "relevant") query.addSelect("(jsonb_array_length(video.industry_tags) * 10 + ln(COALESCE((video.platform_metrics->>'views')::int,0) + 1) * 3 + CASE WHEN jsonb_array_length(video.key_points) > 0 THEN 5 ELSE 0 END)", "relevance_score").orderBy("relevance_score", "DESC").addOrderBy("video.publishedAt", "DESC");
     else query.orderBy("video.publishedAt", "DESC");
     const [items, total] = await query.skip((page - 1) * limit).take(limit).getManyAndCount();
     return { items, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } };

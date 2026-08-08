@@ -23,6 +23,15 @@ function extractTencentVid(url: string): string | null {
   const m = url.match(/\/(?:page|cover)\/(?:[A-Za-z0-9]+\/)?([A-Za-z0-9]{6,15})\.html/);
   return m ? m[1] : null;
 }
+function extractYoutubeId(url: string): string | null {
+  // youtube.com/watch?v=VIDEO_ID or youtu.be/VIDEO_ID or youtube.com/embed/VIDEO_ID
+  const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+function extractDouyinId(url: string): string | null {
+  const m = url.match(/\/video\/(\d{19})/);
+  return m ? m[1] : null;
+}
 function splitTitle(raw: string): { tag: string; title: string } {
   const m = raw.match(/^(.+?)[_—\-–]\s*([^_—\-–]+)_bilibili$/i);
   if (m) return { tag: m[2].trim(), title: m[1].trim() };
@@ -50,6 +59,8 @@ export default function VideoDetailPage() {
 
   const bvid = extractBvid(video.originalUrl);
   const tencentVid = extractTencentVid(video.originalUrl);
+  const youtubeId = extractYoutubeId(video.originalUrl);
+  const douyinId = extractDouyinId(video.originalUrl);
   const { tag, title } = splitTitle(video.title);
 
   return (
@@ -84,6 +95,28 @@ export default function VideoDetailPage() {
               className="video-player-iframe"
               title={title}
             />
+          </div>
+        ) : youtubeId ? (
+          <div className="video-player-wrapper">
+            <iframe
+              src={`https://www.youtube.com/embed/${youtubeId}?autoplay=0&rel=0`}
+              allowFullScreen
+              allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+              className="video-player-iframe"
+              title={title}
+            />
+          </div>
+        ) : douyinId ? (
+          <div className="video-player-fallback">
+            <div className="video-player-preview">
+              {video.coverUrl ? (
+                <img src={video.coverUrl} alt={title} style={{ maxWidth: "100%", borderRadius: 8 }} />
+              ) : null}
+            </div>
+            <p>抖音视频需在抖音 App 内观看</p>
+            <a href={video.originalUrl} target="_blank" rel="noopener noreferrer" className="btn-primary">
+              在抖音观看 →
+            </a>
           </div>
         ) : (
           <div className="video-player-fallback">

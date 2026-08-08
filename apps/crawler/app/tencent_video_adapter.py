@@ -1,11 +1,13 @@
 """Tencent Video adapter — searches v.qq.com for AI/tech videos.
 
 搜索页为 JS 渲染，优先使用无头浏览器渲染后提取；无浏览器时退回 HTTP（通常拿不到结果）。
+返回结构化视频元数据。
 """
 from __future__ import annotations
 
 import logging
 import re
+from typing import Any
 from urllib.parse import quote
 
 import httpx
@@ -21,7 +23,6 @@ TECH_KEYWORDS = [
     "AI芯片", "大模型应用", "具身智能", "AI Agent", "智能体",
 ]
 
-# vid 形如 /x/page/m0023h7xg6f.html 或 /x/cover/{cid}/{vid}.html
 VID_HREF_RE = re.compile(r"/x/(?:page|cover)/(?:[A-Za-z0-9]+/)?([A-Za-z0-9]{6,15})\.html")
 VID_ATTR_RE = re.compile(r'"vid"\s*:\s*"([A-Za-z0-9]{6,15})"')
 RESULT_SELECTOR = ".result_video, .mod_result, #search_result, .search_result"
@@ -36,10 +37,10 @@ def _extract_vids(html: str) -> list[str]:
     return list(dict.fromkeys(vids))
 
 
-def discover_tencent_videos(entry_url: str, timeout: float = 12.0, browser=None) -> list[str]:
-    """搜索腾讯视频，返回视频页 URL 列表。browser 为可选的无头浏览器实例。"""
+def discover_tencent_videos(entry_url: str, timeout: float = 12.0, browser=None) -> list[dict[str, Any]]:
+    """搜索腾讯视频，返回结构化视频元数据列表。browser 为可选的无头浏览器实例。"""
     try:
-        all_vids: list[str] = []
+        all_items: list[dict[str, Any]] = []
         seen: set[str] = set()
         for keyword in TECH_KEYWORDS[:10]:
             url = TENCENT_SEARCH_URL.format(keyword=quote(keyword))
@@ -61,10 +62,21 @@ def discover_tencent_videos(entry_url: str, timeout: float = 12.0, browser=None)
             for vid in vids:
                 if vid not in seen:
                     seen.add(vid)
-                    all_vids.append(vid)
-        urls = [TENCENT_VIDEO_BASE.format(vid=vid) for vid in all_vids]
-        logger.info("tencent_adapter discovered %d videos", len(urls))
-        return urls
+                    all_items.append({
+                        "url": TENCENT_VIDEO_BASE.format(vid=vid),
+                        "title": "",
+                        "coverUrl": "",
+                        "durationSeconds": 0,
+                        "views": 0,
+                        "likes": 0,
+                        "comments": 0,
+                        "publishedAt": "",
+                        "author": "",
+                        "description": "",
+                        "platform": "tencent",
+                    })
+        logger.info("tencent_adapter discovered %d videos", len(all_items))
+        return all_items
     except Exception as exc:
         logger.warning("tencent_adapter failed: %s", str(exc)[:200])
         return []

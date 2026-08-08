@@ -1,4 +1,7 @@
-"""Bilibili video adapter — searches for AI/tech videos via Bilibili API."""
+"""Bilibili video adapter — searches for AI/tech videos via Bilibili API.
+
+返回结构化视频元数据（标题、封面、时长、播放量、UP主等）。
+"""
 from __future__ import annotations
 import httpx
 import logging
@@ -17,24 +20,32 @@ TECH_KEYWORDS = [
     "开源模型", "算力", "GPU", "人形机器人", "AI创业",
 ]
 
-TECH_TAG_FILTER = [
-    "科技", "数码", "财经", "商业", "知识", "科学",
-    "人工智能", "机器学习", "编程", "互联网", "创业",
-]
+
+def _parse_duration(seconds_or_str: Any) -> int:
+    """解析 B站 duration 字段，可能是秒数或 'mm:ss' 格式。"""
+    if isinstance(seconds_or_str, (int, float)):
+        return int(seconds_or_str)
+    if isinstance(seconds_or_str, str) and ":" in seconds_or_str:
+        parts = seconds_or_str.split(":")
+        if len(parts) == 2:
+            return int(parts[0]) * 60 + int(parts[1])
+        if len(parts) == 3:
+            return int(parts[0]) * 3600 + int(parts[1]) * 60 + int(parts[2])
+    return 0
 
 
-def discover_bilibili_videos(entry_url: str, timeout: float = 10.0) -> list[str]:
-    """Search Bilibili for AI/tech videos and return relevant video URLs."""
+def discover_bilibili_videos(entry_url: str, timeout: float = 10.0) -> list[dict[str, Any]]:
+    """Search Bilibili for AI/tech videos and return structured video metadata."""
     try:
         client = httpx.Client(timeout=timeout, headers={
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             "Referer": "https://www.bilibili.com/",
         })
 
-        all_bvids: list[str] = []
+        all_items: list[dict[str, Any]] = []
         seen: set[str] = set()
 
-        for keyword in TECH_KEYWORDS[:12]:  # 12 keywords, balanced against bilibili rate limits
+        for keyword in TECH_KEYWORDS[:12]:
             try:
                 resp = client.get(
                     BILIBILI_SEARCH_API,
@@ -54,21 +65,37 @@ def discover_bilibili_videos(entry_url: str, timeout: float = 10.0) -> list[str]
                     for v in results:
                         bvid = v.get("bvid", "")
                         tag = (v.get("tag", "") or "").lower()
-                        title = (v.get("title", "") or "").lower()
+                        title = (v.get("title", "") or "")
+                        title_lower = title.lower()
                         # Filter: must have tech-related tag or title
-                        is_tech = any(t in tag for t in ["科技", "数码", "财经", "商业", "知识", "科学"])
+                        is_tech = any(t in tag for t in ["科技", "数码", "财经", "商业", "知识", "科学",
+                                                           "人工智能", "编程", "互联网"])
                         if not is_tech:
-                            is_tech = any(kw in title for kw in ["ai", "人工智能", "gpt", "科技", "芯片", "机器人", "大模型", "融资", "上市"])
+                            is_tech = any(kw in title_lower for kw in [
+                                "ai", "人工智能", "gpt", "科技", "芯片", "机器人",
+                                "大模型", "融资", "上市", "llm", "深度学习", "自动驾驶",
+                            ])
                         if bvid and bvid not in seen and is_tech:
                             seen.add(bvid)
-                            all_bvids.append(bvid)
+                            all_items.append({
+                                "url": f"{BILIBILI_VIDEO_BASE}{bvid}/",
+                                "title": title,
+                                "coverUrl": v.get("pic", ""),
+                                "durationSeconds": _parse_duration(v.get("duration", 0)),
+                                "views": v.get("play", 0),
+                                "likes": 0,  # API search results don't include likes
+                                "comments": v.get("video_review", 0),  # danmaku count
+                                "publishedAt": v.get("pubdate", 0),
+                                "author": v.get("author", ""),
+                                "description": (v.get("description", "") or "")[:2000],
+                                "platform": "bilibili",
+                            })
             except Exception as e:
                 logger.warning("bilibili_search keyword=%s failed: %s", keyword, str(e)[:100])
                 continue
 
-        urls = [f"{BILIBILI_VIDEO_BASE}{bvid}/" for bvid in all_bvids]
-        logger.info("bilibili_adapter discovered %d tech/AI video URLs from %d searches", len(urls), len(TECH_KEYWORDS[:6]))
-        return urls
+        logger.info("bilibili_adapter discovered %d tech/AI videos", len(all_items))
+        return all_items
 
     except Exception as e:
         logger.warning("bilibili_adapter failed: %s", str(e)[:200])

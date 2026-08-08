@@ -20,16 +20,18 @@ const PAGE_SIZE = 12;
 export function VideoChannel() {
   const [items, setItems] = useState<Video[]>([]);
   const [platform, setPlatform] = useState("");
+  const [sort, setSort] = useState<"latest" | "hot" | "relevant">("latest");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const load = useCallback(async (p: number, pf: string) => {
+  const load = useCallback(async (p: number, pf: string, s: "latest" | "hot" | "relevant") => {
     setLoading(true); setError("");
     try {
       const params = new URLSearchParams();
       if (pf) params.set("platform", pf);
+      params.set("sort", s);
       params.set("page", String(p));
       params.set("limit", String(PAGE_SIZE));
       const r = await fetch(`${apiBaseUrl}/videos?${params}`, { cache: "no-store" });
@@ -42,10 +44,10 @@ export function VideoChannel() {
     } finally { setLoading(false); }
   }, []);
 
-  useEffect(() => { setPage(1); load(1, platform); }, [platform, load]);
+  useEffect(() => { setPage(1); load(1, platform, sort); }, [platform, sort, load]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const goPage = (p: number) => { if (p >= 1 && p <= totalPages) { setPage(p); load(p, platform); window.scrollTo({ top: 0, behavior: "smooth" }); } };
+  const goPage = (p: number) => { if (p >= 1 && p <= totalPages) { setPage(p); load(p, platform, sort); window.scrollTo({ top: 0, behavior: "smooth" }); } };
 
   return <main className="video-channel">
     <header>
@@ -55,8 +57,13 @@ export function VideoChannel() {
       <div className="channel-controls">
         <div className="channel-tabs">
           {["", "bilibili", "tencent", "youtube", "douyin"].map((v) => (
-            <button className={platform === v ? "selected" : ""} onClick={() => setPlatform(v)} key={v}>{v === "tencent" ? "腾讯视频" : v || "全部"}</button>
+            <button className={platform === v ? "selected" : ""} onClick={() => setPlatform(v)} key={v}>{v === "tencent" ? "腾讯视频" : v === "youtube" ? "YouTube" : v || "全部"}</button>
           ))}
+        </div>
+        <div className="channel-sort">
+          <button className={sort === "latest" ? "selected" : ""} onClick={() => setSort("latest")}>最新</button>
+          <button className={sort === "hot" ? "selected" : ""} onClick={() => setSort("hot")}>最热</button>
+          <button className={sort === "relevant" ? "selected" : ""} onClick={() => setSort("relevant")}>相关度</button>
         </div>
       </div>
     </header>
