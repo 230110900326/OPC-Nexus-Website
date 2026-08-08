@@ -1,8 +1,7 @@
 """Douyin adapter — best-effort search for tech videos.
 
-抖音网页端为 JS 渲染，且其搜索 API 需要 a_bogus/X-Bogus 签名（随版本频繁变动）。
-纯 Python 无头请求通常拿不到结果；这里做尽力尝试，失败则优雅返回空列表。
-若需稳定抓取，建议后续用浏览器自动化（如 Playwright）或维护签名算法。
+抖音网页端 JS 渲染且搜索 API 需要 a_bogus 签名。优先用无头浏览器渲染后提取；
+若浏览器仍拿不到（签名拦截），则返回空。纯 HTTP 基本无效。
 """
 from __future__ import annotations
 
@@ -36,30 +35,34 @@ def _extract_ids(text: str) -> list[str]:
     return list(dict.fromkeys(ids))
 
 
-def discover_douyin_videos(entry_url: str, timeout: float = 12.0) -> list[str]:
-    """尽力尝试：请求抖音搜索页并提取视频 id。JS 渲染下通常拿不到结果。"""
+def discover_douyin_videos(entry_url: str, timeout: float = 12.0, browser=None) -> list[str]:
+    """尽力尝试搜索抖音视频。browser 为可选的无头浏览器实例。"""
     try:
-        client = httpx.Client(timeout=timeout, headers={
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
-            "Referer": "https://www.douyin.com/",
-            "Accept-Language": "zh-CN,zh;q=0.9",
-        })
         all_ids: list[str] = []
         seen: set[str] = set()
         for keyword in TECH_KEYWORDS[:6]:
-            try:
-                resp = client.get(DOUYIN_SEARCH_URL.format(keyword=quote(keyword)))
-                resp.raise_for_status()
-                ids = _extract_ids(resp.text)
-                for item_id in ids:
-                    if item_id not in seen:
-                        seen.add(item_id)
-                        all_ids.append(item_id)
-            except Exception as exc:
-                logger.warning("douyin_search keyword=%s failed: %s", keyword, str(exc)[:100])
-                continue
+            url = DOUYIN_SEARCH_URL.format(keyword=quote(keyword))
+            ids: list[str] = []
+            if browser is not None:
+                ids = browser.search(url, _extract_ids, wait_selector=".search-result, .result-list, .video-list")
+            else:
+                try:
+                    client = httpx.Client(timeout=timeout, headers={
+                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
+                        "Referer": "https://www.douyin.com/",
+                    })
+                    resp = client.get(url)
+                    resp.raise_for_status()
+                    ids = _extract_ids(resp.text)
+                    client.close()
+                except Exception as exc:
+                    logger.warning("douyin_http keyword=%s failed: %s", keyword, str(exc)[:100])
+            for item_id in ids:
+                if item_id not in seen:
+                    seen.add(item_id)
+                    all_ids.append(item_id)
         urls = [DOUYIN_VIDEO_BASE.format(item_id=item_id) for item_id in all_ids]
-        logger.info("douyin_adapter discovered %d videos (JS-rendered, may be 0)", len(urls))
+        logger.info("douyin_adapter discovered %d videos", len(urls))
         return urls
     except Exception as exc:
         logger.warning("douyin_adapter failed: %s", str(exc)[:200])

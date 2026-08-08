@@ -50,6 +50,7 @@ async def lifespan(_: FastAPI):
     yield
     if scheduler:
         scheduler.shutdown(wait=False)
+    runner.close()
     runner.http.close()
     runner.api.client.close()
     logger.info("crawler_service_stopped service=%s", settings.service_name)

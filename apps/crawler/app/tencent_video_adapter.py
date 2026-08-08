@@ -1,4 +1,7 @@
-"""Tencent Video adapter — searches v.qq.com for AI/tech videos."""
+"""Tencent Video adapter — searches v.qq.com for AI/tech videos.
+
+搜索页为 JS 渲染，优先使用无头浏览器渲染后提取；无浏览器时退回 HTTP（通常拿不到结果）。
+"""
 from __future__ import annotations
 
 import logging
@@ -21,6 +24,7 @@ TECH_KEYWORDS = [
 # vid 形如 /x/page/m0023h7xg6f.html 或 /x/cover/{cid}/{vid}.html
 VID_HREF_RE = re.compile(r"/x/(?:page|cover)/(?:[A-Za-z0-9]+/)?([A-Za-z0-9]{6,15})\.html")
 VID_ATTR_RE = re.compile(r'"vid"\s*:\s*"([A-Za-z0-9]{6,15})"')
+RESULT_SELECTOR = ".result_video, .mod_result, #search_result, .search_result"
 
 
 def _extract_vids(html: str) -> list[str]:
@@ -32,29 +36,34 @@ def _extract_vids(html: str) -> list[str]:
     return list(dict.fromkeys(vids))
 
 
-def discover_tencent_videos(entry_url: str, timeout: float = 12.0) -> list[str]:
-    """Search Tencent Video for AI/tech videos and return video page URLs."""
+def discover_tencent_videos(entry_url: str, timeout: float = 12.0, browser=None) -> list[str]:
+    """搜索腾讯视频，返回视频页 URL 列表。browser 为可选的无头浏览器实例。"""
     try:
-        client = httpx.Client(timeout=timeout, headers={
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            "Referer": "https://v.qq.com/",
-        })
         all_vids: list[str] = []
         seen: set[str] = set()
         for keyword in TECH_KEYWORDS[:10]:
-            try:
-                resp = client.get(TENCENT_SEARCH_URL.format(keyword=quote(keyword)))
-                resp.raise_for_status()
-                vids = _extract_vids(resp.text)
-                for vid in vids:
-                    if vid not in seen:
-                        seen.add(vid)
-                        all_vids.append(vid)
-            except Exception as exc:
-                logger.warning("tencent_search keyword=%s failed: %s", keyword, str(exc)[:100])
-                continue
+            url = TENCENT_SEARCH_URL.format(keyword=quote(keyword))
+            vids: list[str] = []
+            if browser is not None:
+                vids = browser.search(url, _extract_vids, wait_selector=RESULT_SELECTOR)
+            else:
+                try:
+                    client = httpx.Client(timeout=timeout, headers={
+                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                        "Referer": "https://v.qq.com/",
+                    })
+                    resp = client.get(url)
+                    resp.raise_for_status()
+                    vids = _extract_vids(resp.text)
+                    client.close()
+                except Exception as exc:
+                    logger.warning("tencent_http keyword=%s failed: %s", keyword, str(exc)[:100])
+            for vid in vids:
+                if vid not in seen:
+                    seen.add(vid)
+                    all_vids.append(vid)
         urls = [TENCENT_VIDEO_BASE.format(vid=vid) for vid in all_vids]
-        logger.info("tencent_adapter discovered %d videos from %d searches", len(urls), min(len(TECH_KEYWORDS), 10))
+        logger.info("tencent_adapter discovered %d videos", len(urls))
         return urls
     except Exception as exc:
         logger.warning("tencent_adapter failed: %s", str(exc)[:200])

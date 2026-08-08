@@ -10,6 +10,7 @@ import httpx
 
 from .api_client import ApiClient
 from .bilibili_adapter import discover_bilibili_videos
+from .browser_adapter import BrowserSearcher
 from .douyin_adapter import discover_douyin_videos
 from .tencent_video_adapter import discover_tencent_videos
 from .config import Settings
@@ -26,6 +27,7 @@ class CrawlRunner:
         self.api = api
         self.http = httpx.Client(timeout=settings.request_timeout_seconds, follow_redirects=True, headers={"User-Agent": settings.user_agent, "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"})
         self.intelligence = NewsIntelligence(settings)
+        self.browser = BrowserSearcher()
 
     def run(self, source_id: str | None = None) -> dict[str, Any]:
         sources = self.api.sources()
@@ -98,10 +100,10 @@ class CrawlRunner:
             urls = discover_bilibili_videos(entry_url, self.settings.request_timeout_seconds)
             return list(dict.fromkeys(urls))
         if fetch_method == "adapter" and "qq.com" in domain:
-            urls = discover_tencent_videos(entry_url, self.settings.request_timeout_seconds)
+            urls = discover_tencent_videos(entry_url, self.settings.request_timeout_seconds, self.browser)
             return list(dict.fromkeys(urls))
         if fetch_method == "adapter" and "douyin.com" in domain:
-            urls = discover_douyin_videos(entry_url, self.settings.request_timeout_seconds)
+            urls = discover_douyin_videos(entry_url, self.settings.request_timeout_seconds, self.browser)
             return list(dict.fromkeys(urls))
         document, response_url = self._fetch(entry_url, domain)
         allowed = {domain}
@@ -143,3 +145,6 @@ class CrawlRunner:
         if not is_allowed_url(final_url, {domain}):
             raise ValueError("redirected outside the source domain")
         return response.text, final_url
+
+    def close(self) -> None:
+        self.browser.close()
