@@ -54,8 +54,8 @@ export function VideoChannel() {
       <p>AI 与科技领域精选视频，站内直接观看。</p>
       <div className="channel-controls">
         <div className="channel-tabs">
-          {["", "bilibili", "youtube", "douyin"].map((v) => (
-            <button className={platform === v ? "selected" : ""} onClick={() => setPlatform(v)} key={v}>{v || "全部"}</button>
+          {["", "bilibili", "tencent", "youtube", "douyin"].map((v) => (
+            <button className={platform === v ? "selected" : ""} onClick={() => setPlatform(v)} key={v}>{v === "tencent" ? "腾讯视频" : v || "全部"}</button>
           ))}
         </div>
       </div>

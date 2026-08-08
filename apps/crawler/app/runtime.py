@@ -10,6 +10,8 @@ import httpx
 
 from .api_client import ApiClient
 from .bilibili_adapter import discover_bilibili_videos
+from .douyin_adapter import discover_douyin_videos
+from .tencent_video_adapter import discover_tencent_videos
 from .config import Settings
 from .discovery import discover_feed_urls, discover_html_urls
 from .intelligence import NewsIntelligence
@@ -91,9 +93,15 @@ class CrawlRunner:
         return result
 
     def _discover_urls(self, entry_url: str, domain: str, fetch_method: str) -> list[str]:
-        # Bilibili adapter — uses API instead of page scraping
+        # Platform adapters — use their APIs instead of generic page scraping
         if fetch_method == "adapter" and "bilibili" in domain:
             urls = discover_bilibili_videos(entry_url, self.settings.request_timeout_seconds)
+            return list(dict.fromkeys(urls))
+        if fetch_method == "adapter" and "qq.com" in domain:
+            urls = discover_tencent_videos(entry_url, self.settings.request_timeout_seconds)
+            return list(dict.fromkeys(urls))
+        if fetch_method == "adapter" and "douyin.com" in domain:
+            urls = discover_douyin_videos(entry_url, self.settings.request_timeout_seconds)
             return list(dict.fromkeys(urls))
         document, response_url = self._fetch(entry_url, domain)
         allowed = {domain}

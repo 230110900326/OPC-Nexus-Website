@@ -13,6 +13,8 @@ TECH_KEYWORDS = [
     "人工智能", "AI", "大模型", "GPT", "LLM", "深度学习",
     "机器人", "芯片", "半导体", "自动驾驶", "新能源",
     "科技", "创业", "投资", "财经", "商业",
+    "AI芯片", "大模型应用", "具身智能", "AI Agent", "智能体",
+    "开源模型", "算力", "GPU", "人形机器人", "AI创业",
 ]
 
 TECH_TAG_FILTER = [
@@ -32,7 +34,7 @@ def discover_bilibili_videos(entry_url: str, timeout: float = 10.0) -> list[str]
         all_bvids: list[str] = []
         seen: set[str] = set()
 
-        for keyword in TECH_KEYWORDS[:6]:  # Use top 6 keywords to avoid rate limits
+        for keyword in TECH_KEYWORDS[:12]:  # 12 keywords, balanced against bilibili rate limits
             try:
                 resp = client.get(
                     BILIBILI_SEARCH_API,

@@ -19,6 +19,10 @@ function extractBvid(url: string): string | null {
   const m = url.match(/\/video\/(BV[A-Za-z0-9]+)/);
   return m ? m[1] : null;
 }
+function extractTencentVid(url: string): string | null {
+  const m = url.match(/\/(?:page|cover)\/(?:[A-Za-z0-9]+\/)?([A-Za-z0-9]{6,15})\.html/);
+  return m ? m[1] : null;
+}
 function splitTitle(raw: string): { tag: string; title: string } {
   const m = raw.match(/^(.+?)[_—\-–]\s*([^_—\-–]+)_bilibili$/i);
   if (m) return { tag: m[2].trim(), title: m[1].trim() };
@@ -45,6 +49,7 @@ export default function VideoDetailPage() {
   if (!video) return <SiteChrome><main className="video-detail-page"><p className="content-state">加载中…</p></main></SiteChrome>;
 
   const bvid = extractBvid(video.originalUrl);
+  const tencentVid = extractTencentVid(video.originalUrl);
   const { tag, title } = splitTitle(video.title);
 
   return (
@@ -64,6 +69,16 @@ export default function VideoDetailPage() {
           <div className="video-player-wrapper">
             <iframe
               src={`https://player.bilibili.com/player.html?bvid=${bvid}&high_quality=1&autoplay=0`}
+              allowFullScreen
+              allow="autoplay; encrypted-media; fullscreen"
+              className="video-player-iframe"
+              title={title}
+            />
+          </div>
+        ) : tencentVid ? (
+          <div className="video-player-wrapper">
+            <iframe
+              src={`https://v.qq.com/iframe/player.html?vid=${tencentVid}&tiny=0&auto=0`}
               allowFullScreen
               allow="autoplay; encrypted-media; fullscreen"
               className="video-player-iframe"
