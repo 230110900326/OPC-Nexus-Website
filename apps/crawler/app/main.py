@@ -65,7 +65,8 @@ async def health_check() -> dict:
 
 
 @app.post("/runs", dependencies=[Depends(require_crawler_token)])
-async def run_now(input: RunRequest) -> dict:
+def run_now(input: RunRequest) -> dict:
+    """同步端点：FastAPI 在 threadpool 中执行，避免 Playwright sync_api 与 asyncio 冲突。"""
     try:
         return {"success": True, "data": runner.run(input.source_id)}
     except ValueError as error:
