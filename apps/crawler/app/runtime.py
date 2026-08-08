@@ -176,6 +176,8 @@ class CrawlRunner:
                 published_at = None
 
             cover_url = item.get("coverUrl", "") or None  # empty str → null
+            if cover_url and cover_url.startswith("//"):
+                cover_url = f"https:{cover_url}"
             return {
                 "title": title[:240],
                 "originalUrl": url,
