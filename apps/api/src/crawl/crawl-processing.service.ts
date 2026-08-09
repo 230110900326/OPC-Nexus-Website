@@ -43,13 +43,23 @@ export class CrawlProcessingService {
     const policyIssuer = type === ArticleType.POLICY && typeof agentAnalysis.issuing_authority === "string" && agentAnalysis.issuing_authority.trim() ? agentAnalysis.issuing_authority.trim().slice(0, 160) : null; const applicableRegion = type === ArticleType.POLICY && typeof agentAnalysis.jurisdiction === "string" && agentAnalysis.jurisdiction.trim() ? agentAnalysis.jurisdiction.trim().slice(0, 100) : null; const effectiveDate = type === ArticleType.POLICY && typeof agentAnalysis.effective_date === "string" ? parseDateOnly(agentAnalysis.effective_date) : null;
     const article = await this.articles.save(this.articles.create({ slug, title: cleanTitle(input.title), content: input.content.trim(), summary: agentSummary || fallbackSummary.text, summaryKeywords: matchedTerms.length ? matchedTerms : fallbackSummary.keywords, summaryEntities: affectedEntities.length ? affectedEntities : fallbackSummary.entities, summaryModelVersion: agentVersion ? `znt-${agentVersion}` : "rule-based-v1", summaryGeneratedAt: new Date(), summaryReviewed: false, agentAnalysis, heatScore, type, status: isPublished ? ArticleStatus.PUBLISHED : ArticleStatus.REVIEW, originalUrl: input.originalUrl, canonicalUrl, contentFingerprint: fingerprint, coverImageUrl: input.coverImageUrl ?? `/api/covers/${slug}`, publishedAt: isPublished ? (input.publishedAt ? new Date(input.publishedAt) : new Date()) : (input.publishedAt ? new Date(input.publishedAt) : null), classification, policyIssuer, applicableRegion, effectiveDate, sources: [this.articleSources.create({ name: source.name, url: input.originalUrl, isPrimary: true })] }));
 
-    // Auto-format content with rule-based engine (no AI key required)
+    // Auto-format content with rule-based engine, or AI-condense long articles (~800字保留原意)
     if (this.formatter && input.content.trim().length > 100) {
+      const raw = input.content.trim();
       try {
-        const formatted = this.formatter.formatArticleRuleBased(input.content.trim());
-        await this.articles.update(article.id, { content: formatted });
-        article.content = formatted;
-        this.logger.log("Auto-formatted article " + article.id.slice(0, 8));
+        const isLong = raw.replace(/<[^>]+>/g, "").length > 800;
+        const condensed = isLong ? await this.formatter.condenseArticle(cleanTitle(input.title), raw) : null;
+        if (condensed?.text) {
+          await this.articles.update(article.id, { content: condensed.text, originalContent: raw });
+          article.content = condensed.text;
+          article.originalContent = raw;
+          this.logger.log("AI-condensed article " + article.id.slice(0, 8));
+        } else {
+          const formatted = this.formatter.formatArticleRuleBased(raw);
+          await this.articles.update(article.id, { content: formatted });
+          article.content = formatted;
+          this.logger.log("Auto-formatted article " + article.id.slice(0, 8));
+        }
       } catch (err: any) { this.logger.warn("Format skip: " + (err?.message || String(err))); }
     }
 

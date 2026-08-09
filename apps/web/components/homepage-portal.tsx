@@ -81,7 +81,7 @@ export function HomepagePortal() {
   if (error || !data) return <main className="opc-home"><div className="home-failure" role="alert"><p className="eyebrow">HOMEPAGE SIGNAL INTERRUPTED</p><h1>首页内容未能接通。</h1><p>{error || "首页聚合接口没有返回数据。"}</p><button onClick={() => void load()}>重新加载</button></div></main>;
 
   const signals = data.sections.recommendations.slice(0, 4);
-  const carouselItems = (() => { const withCover = data.sections.recommendations.filter((item) => item.coverImageUrl); return (withCover.length ? withCover : data.sections.recommendations).slice(0, 5); })();
+  const carouselItems = data.sections.recommendations.map(withCover).filter((item) => item.coverImageUrl).slice(0, 5);
   return <main className="opc-home">
     <section className="home-focus">
       <HeroCarousel items={carouselItems} />
@@ -157,6 +157,15 @@ function CreatorSection({ title, items }: { title: string; items: HomepageCreato
 function EmptyState({ text, help }: { text: string; help: string }) { return <div className="home-empty"><strong>{text}</strong><span>{help}</span></div>; }
 function TrackedLink({ item, children }: { item: HomepagePublicConfig; children: React.ReactNode }) { const href = item.targetUrl || "/discover"; return <SmartLink className="focus-action" href={href} onClick={() => void trackRecommendation([item.trackingId], "click").catch(() => undefined)}>{children}</SmartLink>; }
 function SmartLink({ href, children, className, onClick }: { href: string; children: React.ReactNode; className?: string; onClick?: () => void }) { return href.startsWith("/") ? <Link className={className} href={href} onClick={onClick}>{children}</Link> : <a className={className} href={href} target="_blank" rel="noreferrer" onClick={onClick}>{children}</a>; }
+function withCover(item: FeedItem): FeedItem {
+  if (item.coverImageUrl) return item;
+  // 文章/政策没有真实封面时，补上自动生成的 SVG 封面（keyed by slug）
+  if (item.contentType === "article" || item.contentType === "policy") {
+    const match = /\/articles\/([^/?#]+)/.exec(item.url);
+    if (match) return { ...item, coverImageUrl: `/api/covers/${match[1]}` };
+  }
+  return item;
+}
 function proxyCover(url: string | null): string | null {
   if (!url) return null;
   // Rewrite Bilibili CDN URLs to our proxy
