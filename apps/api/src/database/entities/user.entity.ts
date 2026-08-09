@@ -15,7 +15,7 @@ export class User {
   @Column({ name: "display_name", type: "varchar", length: 60 })
   displayName!: string;
 
-  @Column({ name: "avatar_url", type: "varchar", length: 500, nullable: true })
+  @Column({ name: "avatar_url", type: "text", nullable: true })
   avatarUrl!: string | null;
 
   @Column({ type: "varchar", length: 280, nullable: true })
