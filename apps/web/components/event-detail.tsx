@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Event, getEvent, registerForEvent } from "../lib/forum";
 import { refreshSession } from "../lib/auth";
+import { BrowsingHistoryTracker } from "./browsing-history-tracker";
 
 /* ── formatting helpers ── */
 
@@ -207,6 +208,7 @@ export function EventDetail({ id }: { id: string }) {
         </aside>
 
       </div>
+      <BrowsingHistoryTracker title={event.title} />
     </main>
   );
 }

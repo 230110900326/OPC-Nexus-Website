@@ -2,6 +2,7 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { apiBaseUrl } from "../../../lib/api-base";
+import { BrowsingHistoryTracker } from "../../../components/browsing-history-tracker";
 import { SiteChrome } from "../../../components/site-chrome";
 
 type Video = {
@@ -141,6 +142,7 @@ export default function VideoDetailPage() {
             在 {video.platform} 查看原视频 ↗
           </a>
         </section>
+        <BrowsingHistoryTracker title={title} />
       </main>
     </SiteChrome>
   );

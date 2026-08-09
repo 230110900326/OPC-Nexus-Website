@@ -16,6 +16,7 @@ from .tencent_video_adapter import discover_tencent_videos
 from .youtube_adapter import discover_youtube_videos
 from .config import Settings
 from .discovery import discover_feed_urls, discover_html_urls
+from .processing import strip_html
 from .intelligence import NewsIntelligence
 from .parser import ParsedArticle, is_allowed_url, parse_article
 
@@ -147,13 +148,13 @@ class CrawlRunner:
             url = item.get("url", "")
             if not url:
                 return None
-            title = item.get("title", "")
+            title = strip_html(item.get("title", "") or "")
             if not title:
                 # Try to fetch the page for title if not in metadata
                 try:
                     html, response_url = self._fetch(url, domain)
                     article = parse_article(html, response_url)
-                    title = article.title
+                    title = strip_html(article.title or "")
                 except Exception:
                     pass
             if not title:
@@ -184,7 +185,7 @@ class CrawlRunner:
                 "canonicalUrl": url,
                 "coverUrl": cover_url,
                 "publishedAt": published_at or None,
-                "description": (item.get("description", "") or "")[:2000] or None,
+                "description": strip_html(item.get("description", "") or "")[:2000] or None,
                 "durationSeconds": int(item.get("durationSeconds", 0)),
                 "platformMetrics": platform_metrics,
             }

@@ -30,7 +30,7 @@ function HeroCarousel({ items }: { items: FeedItem[] }) {
       <div className="hero-carousel-track" style={{ transform: `translateX(-${current * 100}%)` }}>
         {items.map((item, index) => (
           <SmartLink href={item.url} key={`${item.contentType}-${item.id}`} className="hero-carousel-slide" onClick={() => void trackRecommendation([], "click").catch(() => undefined)}>
-            <div className="hero-carousel-slide-bg" style={item.coverImageUrl ? { backgroundImage: `url(${item.coverImageUrl})` } : undefined} />
+            <div className="hero-carousel-slide-bg" style={item.coverImageUrl ? { backgroundImage: `url(${proxyCover(item.coverImageUrl) ?? item.coverImageUrl})` } : undefined} />
             <div className="hero-carousel-slide-body">
               <p className="eyebrow">{contentLabels[item.contentType]} · {item.industry ?? "综合"}{item.source ? ` · ${item.source}` : ""}</p>
               <h2>{item.title}</h2>

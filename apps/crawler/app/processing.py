@@ -1,10 +1,19 @@
 from __future__ import annotations
 import hashlib
+import html
 import re
 from dataclasses import dataclass
 from urllib.parse import urljoin
 import httpx
 from .keywords import OPC_PRIORITY_KEYWORDS
+
+_TAG_RE = re.compile(r"<[^>]*>")
+
+def strip_html(text: str) -> str:
+    """移除 HTML 标签并反转义实体（如 B站搜索标题中的 <em class=\"keyword\">）。"""
+    if not text:
+        return text
+    return html.unescape(_TAG_RE.sub("", text)).strip()
 
 def normalized_fingerprint(text: str) -> str:
     return hashlib.sha256(re.sub(r"\s+", "", text).lower().encode()).hexdigest()

@@ -3,6 +3,7 @@
 返回结构化视频元数据（标题、封面、时长、播放量、UP主等）。
 """
 from __future__ import annotations
+from .processing import strip_html
 import httpx
 import logging
 from typing import Any
@@ -65,7 +66,7 @@ def discover_bilibili_videos(entry_url: str, timeout: float = 10.0) -> list[dict
                     for v in results:
                         bvid = v.get("bvid", "")
                         tag = (v.get("tag", "") or "").lower()
-                        title = (v.get("title", "") or "")
+                        title = strip_html(v.get("title", "") or "")
                         title_lower = title.lower()
                         # Filter: must have tech-related tag or title
                         is_tech = any(t in tag for t in ["科技", "数码", "财经", "商业", "知识", "科学",
@@ -87,7 +88,7 @@ def discover_bilibili_videos(entry_url: str, timeout: float = 10.0) -> list[dict
                                 "comments": v.get("video_review", 0),  # danmaku count
                                 "publishedAt": v.get("pubdate", 0),
                                 "author": v.get("author", ""),
-                                "description": (v.get("description", "") or "")[:2000],
+                                "description": strip_html(v.get("description", "") or "")[:2000],
                                 "platform": "bilibili",
                             })
             except Exception as e:

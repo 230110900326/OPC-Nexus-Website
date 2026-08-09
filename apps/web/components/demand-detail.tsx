@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Account, refreshSession } from "../lib/auth";
 import { addInteraction, createReport, getInteractionSummary, removeInteraction } from "../lib/forum";
 import { Demand, DemandConnect, DemandContact, connectDemand, contactTypeLabels, demandBudgetLabels, demandTypeLabels, getDemand, getDemandContact, getDemandConnects, getMyDemandConnects, updateDemandConnect } from "../lib/demands";
+import { BrowsingHistoryTracker } from "./browsing-history-tracker";
 
 export function DemandDetail() {
   const params = useParams<{ id: string }>(); const router = useRouter(); const id = params.id;
@@ -61,6 +62,7 @@ export function DemandDetail() {
     {error && <p className="form-error demand-floating-message" role="alert">{error}</p>}{message && <p className="form-success demand-floating-message" role="status">{message}</p>}
     {connectOpen && <div className="demand-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setConnectOpen(false); }}><section className="demand-modal" role="dialog" aria-modal="true" aria-labelledby="connect-title"><button className="modal-close" onClick={() => setConnectOpen(false)} aria-label="关闭">×</button><p className="eyebrow">SEND MATCHING NOTE</p><h2 id="connect-title">说明你能提供什么</h2><p>需求方会看到你的平台资料和这段留言。请写清经验、交付方式与可投入时间。</p><form onSubmit={apply}><textarea required minLength={10} maxLength={1000} rows={7} value={applyMsg} onChange={(event) => setApplyMsg(event.target.value)} placeholder="例如：我长期跟踪新能源供应链，可在一周内完成 5 位从业者访谈并交付纪要…" /><button className="demand-primary" disabled={busy}>{busy ? "正在发送…" : "发送对接意向 →"}</button></form></section></div>}
     {reportOpen && <div className="demand-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setReportOpen(false); }}><section className="demand-modal" role="dialog" aria-modal="true" aria-labelledby="report-title"><button className="modal-close" onClick={() => setReportOpen(false)} aria-label="关闭">×</button><p className="eyebrow">TRUST &amp; SAFETY</p><h2 id="report-title">举报这条需求</h2><form onSubmit={report}><label>问题类型<select value={reportReason} onChange={(event) => setReportReason(event.target.value)}><option>虚假需求</option><option>需求广告</option><option>违规金融信息</option><option>骚扰联系方式</option><option>其他违规</option></select></label><label>补充说明<textarea maxLength={1000} rows={5} value={reportDetails} onChange={(event) => setReportDetails(event.target.value)} placeholder="请说明可核验的具体问题" /></label><button className="demand-primary" disabled={busy}>{busy ? "正在提交…" : "提交举报 →"}</button></form></section></div>}
+    <BrowsingHistoryTracker title={demand.title} />
   </main>;
 }
 

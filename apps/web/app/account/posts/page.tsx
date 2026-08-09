@@ -122,7 +122,7 @@ export default function MyPostsPage() {
                   </div>
                   <div className="account-post-body">
                     <h2>
-                      <Link href={`/community/posts/${post.id}`}>{post.title}</Link>
+                      <Link href={post.status === "draft" ? `/community/posts/${post.id}/edit` : `/community/posts/${post.id}`}>{post.title}</Link>
                     </h2>
                     {post.body && (
                       <p className="account-post-excerpt">{post.body.slice(0, 180)}{post.body.length > 180 ? "…" : ""}</p>
@@ -135,7 +135,9 @@ export default function MyPostsPage() {
                       <span>{post._count?.comments ?? post.commentCount ?? 0} 评论</span>
                       <span className="account-post-sep">·</span>
                       <span>{post._count?.likes ?? 0} 点赞</span>
-                      <Link href={`/community/posts/${post.id}`} className="account-post-link">查看详情 →</Link>
+                      {post.status === "draft"
+                        ? <Link href={`/community/posts/${post.id}/edit`} className="account-post-link">编辑草稿 →</Link>
+                        : <Link href={`/community/posts/${post.id}`} className="account-post-link">查看详情 →</Link>}
                     </footer>
                   </div>
                 </article>
