@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { apiBaseUrl } from "../../../lib/api-base";
 import { BrowsingHistoryTracker } from "../../../components/browsing-history-tracker";
 import { SiteChrome } from "../../../components/site-chrome";
+import { InteractionBar } from "../../../components/interaction-bar";
+import { CommentSection } from "../../../components/comment-section";
 
 type Video = {
   id: string; platform: string; title: string; coverUrl: string | null;
@@ -142,6 +144,8 @@ export default function VideoDetailPage() {
             在 {video.platform} 查看原视频 ↗
           </a>
         </section>
+        <InteractionBar targetType="video" targetId={video.id} />
+        <CommentSection targetType="video" targetId={video.id} placeholder="补充你对这条视频的观点…" />
         <BrowsingHistoryTracker title={title} />
       </main>
     </SiteChrome>

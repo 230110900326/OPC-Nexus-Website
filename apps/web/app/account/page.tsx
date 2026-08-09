@@ -66,6 +66,7 @@ export default function AccountPage() {
         <div className="account-header-actions">
           <Link href="/community/new">发起讨论</Link>
           <Link href="/account/demands">我的需求</Link>
+          <Link href="/account/favorites">我的收藏</Link>
           {canManageContent && <Link href="/admin/articles">内容工作台</Link>}
           {canModerate && <Link href="/admin/moderation">举报审核</Link>}
           <button onClick={leave}>退出登录</button>
@@ -88,6 +89,9 @@ export default function AccountPage() {
           <div className="profile-card-links">
             <Link href="/account/demands" className="btn-card-link">供需工作台</Link>
             <Link href="/account/posts" className="btn-card-link">我的讨论</Link>
+            <Link href="/account/favorites" className="btn-card-link">我的收藏</Link>
+            <Link href="/account/likes" className="btn-card-link">我的点赞</Link>
+            <Link href="/account/comments" className="btn-card-link">我的评论</Link>
             <Link href="/account/history" className="btn-card-link">浏览历史</Link>
           </div>
         </aside>

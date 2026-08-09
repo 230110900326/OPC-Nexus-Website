@@ -11,17 +11,20 @@ import { User } from "../database/entities/user.entity";
 import { Video } from "../database/entities/video.entity";
 import { Creator } from "../database/entities/creator.entity";
 import { Notification } from "../database/entities/notification.entity";
+import { Report } from "../database/entities/report.entity";
+import { OptionalJwtAuthGuard } from "../auth/optional-jwt-auth.guard";
 import { RankingModule } from "../ranking/ranking.module";
 import { NotificationsModule } from "../notifications/notifications.module";
+import { CommentsController } from "./comments.controller";
 import { InteractionsController } from "./interactions.controller";
 import { InteractionsService } from "./interactions.service";
 import { OpcDemand } from "../database/entities/opc-demand.entity";
 
 @Module({
   imports: [AuthModule, RankingModule, NotificationsModule,
-    TypeOrmModule.forFeature([Like, Favorite, Follow, Article, Post, Comment, User, Video, Creator, OpcDemand, Notification])],
-  controllers: [InteractionsController],
-  providers: [InteractionsService],
+    TypeOrmModule.forFeature([Like, Favorite, Follow, Article, Post, Comment, User, Video, Creator, OpcDemand, Notification, Report])],
+  controllers: [InteractionsController, CommentsController],
+  providers: [InteractionsService, OptionalJwtAuthGuard],
   exports: [InteractionsService],
 })
 export class InteractionsModule {}

@@ -101,7 +101,7 @@ export class ForumService {
     const body = normalizePlainText(input.body);
     const riskTerms = findFinancialHighRiskTerms(body);
     const status = riskTerms.length ? CommentStatus.REVIEW : CommentStatus.PUBLISHED;
-    const comment = await this.comments.save(this.comments.create({ body, status, post, parent, author: { id: user.id } as User }));
+    const comment = await this.comments.save(this.comments.create({ body, status, post, parent, author: { id: user.id } as User, targetType: "post", targetId: postId }));
     if (status === CommentStatus.REVIEW) {
       await this.queueReview(ReportTargetType.COMMENT, comment.id, user.id, riskTerms);
     } else {

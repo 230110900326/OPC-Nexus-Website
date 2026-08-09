@@ -10,6 +10,12 @@ export type ForumComment = { id: string; body: string; status: "published" | "hi
 export type ForumPost = { id: string; title: string; body: string; status: "draft" | "published" | "hidden"; isLocked: boolean; isPinned: boolean; isFeatured: boolean; viewCount: number; commentCount: number; heatScore: number | string; createdAt: string; updatedAt: string; section: ForumSection; author: ForumUser; comments?: ForumComment[] };
 export type ForumPostList = { items: ForumPost[]; pagination: { page: number; limit: number; total: number; totalPages: number } };
 export type InteractionSummary = { likes: number; favorites: number; followers: number };
+export type ContentComment = { id: string; body: string; status: "published" | "hidden" | "deleted" | "review"; createdAt: string; updatedAt: string; parentId: string | null; author: ForumUser; children: ContentComment[] };
+export type ContentCommentsResponse = { comments: ContentComment[]; count: number };
+export type InteractionState = { likes: number; favorites: number; comments: number; isLiked: boolean; isFavorited: boolean };
+export type MyInteractionTarget = { targetType: "article" | "post" | "video" | "demand"; targetId: string; title: string; url: string; excerpt: string };
+export type MyInteractionItem = { target: MyInteractionTarget; createdAt: string };
+export type MyCommentItem = { id: string; body: string; status: string; createdAt: string; parentId: string | null; target: MyInteractionTarget };
 export type Report = { id: string; targetType: "post" | "comment" | "article" | "user" | "demand"; targetId: string; reason: string; details: string | null; status: "pending" | "resolved" | "rejected"; createdAt: string; reporter: { displayName: string; email: string }; targetPreview?: { title: string; excerpt: string; postId?: string; demandId?: string } | null };
 export type Event = { id: string; title: string; description: string; coverUrl: string | null; locationName: string; locationAddress: string | null; startsAt: string; endsAt: string; registrationDeadline: string | null; capacity: number | null; registrationFields: { key: string; label: string; required?: boolean; type?: string; options?: string[] }[]; status: "draft" | "published" | "cancelled" | "completed"; organizer: { id: string; displayName: string }; registrationCount: number; isRegistrationOpen: boolean };
 export type EventRegistration = { id: string; status: "pending" | "confirmed" | "cancelled"; formData: Record<string, string>; checkedInAt: string | null; createdAt: string; user?: { id: string; displayName: string; email: string }; event?: Event };
@@ -24,6 +30,14 @@ export const addComment = (postId: string, body: string, parentId?: string) => a
 export const updateComment = (id: string, body: string) => authorizedRequest<ForumComment>(`/forum/comments/${id}`, { method: "PATCH", body: JSON.stringify({ body }) });
 export const deleteComment = (id: string) => authorizedRequest<{ id: string }>(`/forum/comments/${id}`, { method: "DELETE" });
 export const getInteractionSummary = (type: string, id: string) => publicRequest<InteractionSummary>(`/interactions/${type}/${id}`);
+export const getInteractionState = async (type: string, id: string) => { const token = getAccessToken(); const response = await fetch(`${apiBaseUrl}/interactions/state/${type}/${id}`, { cache: "no-store", credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} }); const body = await response.json() as Envelope<InteractionState>; if (!response.ok || !body.success || body.data === undefined) throw new Error(body.error?.message ?? "请求未能完成"); return body.data; };
+export const getContentComments = (type: string, id: string) => publicRequest<ContentCommentsResponse>(`/content/comments/${type}/${id}`);
+export const addContentComment = (type: string, id: string, body: string, parentId?: string) => authorizedRequest<ContentComment>(`/content/comments/${type}/${id}`, { method: "POST", body: JSON.stringify({ body, parentId }) });
+export const updateContentComment = (id: string, body: string) => authorizedRequest<ContentComment>(`/content/comments/${id}`, { method: "PATCH", body: JSON.stringify({ body }) });
+export const deleteContentComment = (id: string) => authorizedRequest<{ id: string }>(`/content/comments/${id}`, { method: "DELETE" });
+export const getMyFavorites = () => authorizedRequest<MyInteractionItem[]>("/interactions/me/favorites");
+export const getMyLikes = () => authorizedRequest<MyInteractionItem[]>("/interactions/me/likes");
+export const getMyComments = () => authorizedRequest<MyCommentItem[]>("/interactions/me/comments");
 export const addInteraction = (kind: "likes" | "favorites" | "follows", type: string, id: string) => authorizedRequest<{ active: boolean; count: number }>(`/interactions/${kind}/${type}/${id}`, { method: "POST" });
 export const removeInteraction = (kind: "likes" | "favorites" | "follows", type: string, id: string) => authorizedRequest<{ active: boolean; count: number }>(`/interactions/${kind}/${type}/${id}`, { method: "DELETE" });
 export const createReport = (input: Record<string, unknown>) => authorizedRequest<Report>("/reports", { method: "POST", body: JSON.stringify(input) });

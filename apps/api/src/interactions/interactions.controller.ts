@@ -4,6 +4,7 @@ import { Throttle } from "@nestjs/throttler";
 import { AuthenticatedUser } from "../auth/authenticated-user.decorator";
 import { AuthUser } from "../auth/auth-user.interface";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
+import { OptionalJwtAuthGuard } from "../auth/optional-jwt-auth.guard";
 import { FavoriteTargetType } from "../database/entities/favorite.entity";
 import { FollowTargetType } from "../database/entities/follow.entity";
 import { LikeTargetType } from "../database/entities/like.entity";
@@ -12,6 +13,11 @@ import { InteractionsService } from "./interactions.service";
 @Controller("interactions")
 export class InteractionsController {
   constructor(private readonly interactions: InteractionsService) {}
+  // 注意：静态前缀路由须声明在 :targetType/:targetId 之前，否则会被其捕获
+  @Get("me/favorites") @UseGuards(JwtAuthGuard) async myFavorites(@AuthenticatedUser() user: AuthUser) { return { success: true, data: await this.interactions.myFavorites(user.id) }; }
+  @Get("me/likes") @UseGuards(JwtAuthGuard) async myLikes(@AuthenticatedUser() user: AuthUser) { return { success: true, data: await this.interactions.myLikes(user.id) }; }
+  @Get("me/comments") @UseGuards(JwtAuthGuard) async myComments(@AuthenticatedUser() user: AuthUser) { return { success: true, data: await this.interactions.myComments(user.id) }; }
+  @Get("state/:targetType/:targetId") @UseGuards(OptionalJwtAuthGuard) async state(@AuthenticatedUser() user: AuthUser | undefined, @Param("targetType") targetType: string, @Param("targetId", ParseUUIDPipe) targetId: string) { return { success: true, data: await this.interactions.contentState(targetType, targetId, user?.id) }; }
   @Get("me") @UseGuards(JwtAuthGuard) async mine(@AuthenticatedUser() user: AuthUser) { return { success: true, data: await this.interactions.mine(user.id) }; }
   @Get(":targetType/:targetId") async summary(@Param("targetType") targetType: string, @Param("targetId", ParseUUIDPipe) targetId: string) { return { success: true, data: await this.interactions.summary(targetType, targetId) }; }
   @Post("likes/:targetType/:targetId") @UseGuards(JwtAuthGuard) @Throttle({ default: { limit: 30, ttl: 60000 } }) async like(@AuthenticatedUser() user: AuthUser, @Param("targetType", new ParseEnumPipe(LikeTargetType)) targetType: LikeTargetType, @Param("targetId", ParseUUIDPipe) targetId: string, @Req() request: Request) { return { success: true, data: await this.interactions.addLike(user.id, targetType, targetId, this.context(request)) }; }

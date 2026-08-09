@@ -3,6 +3,7 @@
    用法（api 容器内，dist 已编译）：
      node dist/scripts/backfill-condense.js
    依赖：DB_* 与 CONTENT_CONDENSE_* 环境变量（docker-compose 已注入 .env）。 */
+import * as path from "path";
 import { DataSource } from "typeorm";
 import { Article, ArticleStatus } from "../database/entities/article.entity";
 
@@ -66,7 +67,8 @@ async function main() {
     username: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    entities: [Article],
+    // 加载全部实体（glob）以解析 Article 上的所有关联元数据，避免逐条引入关联链
+    entities: [path.join(__dirname, "../database/entities/*.js")],
     synchronize: false,
   });
   await ds.initialize();
