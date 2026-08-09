@@ -265,7 +265,7 @@ export class InteractionsService {
   }
 
   private publicComment(comment: Comment) {
-    return { id: comment.id, body: comment.status === CommentStatus.HIDDEN ? "该评论已由社区审核隐藏" : comment.status === CommentStatus.REVIEW ? "该评论正在审核" : comment.body, status: comment.status, createdAt: comment.createdAt, updatedAt: comment.updatedAt, parentId: comment.parent?.id ?? null, author: { id: comment.author.id, displayName: comment.author.displayName, avatarUrl: comment.author.avatarUrl, industry: comment.author.industry, company: comment.author.company, jobTitle: comment.author.jobTitle } };
+    return { id: comment.id, body: comment.status === CommentStatus.HIDDEN ? "该评论已由社区审核隐藏" : comment.status === CommentStatus.REVIEW ? "该评论正在审核" : comment.body, status: comment.status, createdAt: comment.createdAt, updatedAt: comment.updatedAt, parentId: comment.parent?.id ?? null, author: { id: comment.author.id, displayName: comment.author.displayName, avatarUrl: comment.author.avatarUrl, industry: comment.author.industry, company: comment.author.company, jobTitle: comment.author.jobTitle }, children: [] };
   }
 
   private commentTree(comments: Comment[]) { const mapped = new Map<string, any>(comments.map((comment) => [comment.id, this.publicComment(comment)])); const roots: any[] = []; for (const comment of comments) { const value = mapped.get(comment.id)!; const parent = comment.parent ? mapped.get(comment.parent.id) : undefined; if (parent) parent.children.push(value); else roots.push(value); } return roots; }
