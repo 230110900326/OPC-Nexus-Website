@@ -7,7 +7,8 @@ from urllib.parse import urljoin
 import httpx
 from .keywords import OPC_PRIORITY_KEYWORDS
 
-_TAG_RE = re.compile(r"<[^>]*>")
+# 仅匹配形如 <em> / </em> / <br/> 的真实标签，避免误伤正文里的 ">ω<" 等字形。
+_TAG_RE = re.compile(r"</?[a-zA-Z][^>]*>")
 
 def strip_html(text: str) -> str:
     """移除 HTML 标签并反转义实体（如 B站搜索标题中的 <em class=\"keyword\">）。"""
