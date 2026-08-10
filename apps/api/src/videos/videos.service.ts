@@ -33,5 +33,18 @@ export class VideosService { constructor(@InjectRepository(Creator) private read
   async syncLocal(accountId: string) { const account = await this.accounts.findOne({ where: { id: accountId }, relations: { creator: true } }); if (!account || !account.isEnabled || !account.creator.isEnabled || account.creator.authorizationStatus !== AuthorizationStatus.AUTHORIZED) throw new BadRequestException("账号未获授权或未启用"); const adapter = new LocalMockVideoAdapter(); try { const found = await adapter.discover(accountId); let count = 0; for (const item of found) { if (await this.videos.exists({ where: { platform: item.platform, platformVideoId: item.platformVideoId } })) continue; await this.videos.save(this.videos.create({ ...item, coverUrl: item.coverUrl, publishedAt: new Date(item.publishedAt), creatorAccount: account })); count++; } await this.syncLogs.save(this.syncLogs.create({ creatorAccount: account, status: "succeeded", discoveredCount: count, errorMessage: null })); return { discoveredCount: count }; } catch (error) { await this.syncLogs.save(this.syncLogs.create({ creatorAccount: account, status: "failed", discoveredCount: 0, errorMessage: error instanceof Error ? error.message : "同步失败" })); throw error; } }
   async updateSubtitle(id: string, input: UpdateSubtitleDto) { const video = await this.video(id); const legal = new Set([SubtitleStatus.AUTHORIZED, SubtitleStatus.PROCESSING, SubtitleStatus.COMPLETED]); if (legal.has(input.status) && video.subtitleStatus === SubtitleStatus.NO_PERMISSION) throw new BadRequestException("无权限字幕不能进入处理流程"); if (input.status === SubtitleStatus.PROCESSING && video.subtitleStatus !== SubtitleStatus.AUTHORIZED) throw new BadRequestException("字幕仅在已授权后可处理"); if (input.status === SubtitleStatus.COMPLETED && (video.subtitleStatus !== SubtitleStatus.PROCESSING || !input.transcript?.trim())) throw new BadRequestException("需要在处理状态下提供合法字幕文本才能完成"); video.subtitleStatus = input.status; if (input.source !== undefined) video.subtitleSource = input.source; if (input.transcript !== undefined) video.transcript = input.transcript; if (input.status === SubtitleStatus.COMPLETED) Object.assign(video, this.videoSummary(input.transcript!)); return this.videos.save(video); }
   async video(id: string) { const video = await this.videos.findOne({ where: { id }, relations: { creatorAccount: { creator: true } } }); if (!video) throw new NotFoundException("视频不存在"); return video; }
+  async listAll(input: ListVideosDto) {
+    const page = input.page ?? 1;
+    const limit = input.limit ?? 20;
+    const query = this.videos.createQueryBuilder("video")
+      .leftJoinAndSelect("video.creatorAccount", "account")
+      .leftJoinAndSelect("account.creator", "creator");
+    if (input.platform) query.andWhere("video.platform = :platform", { platform: input.platform });
+    if (input.sort === "hot") query.orderBy("(COALESCE((video.platform_metrics->>'views')::int,0))", "DESC");
+    else query.orderBy("video.publishedAt", "DESC");
+    const [items, total] = await query.skip((page - 1) * limit).take(limit).getManyAndCount();
+    return { items, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } };
+  }
+  async togglePublish(id: string, isPublished: boolean) { const video = await this.video(id); video.isPublished = isPublished; return this.videos.save(video); }
   private videoSummary(transcript: string) { const text = transcript.replace(/\s+/g, " ").trim(); const sentences = text.split(/[。！？]/).map((value) => value.trim()).filter(Boolean); return { contentSummary: text.slice(0, 180), keyPoints: sentences.slice(0, 5), industryTags: ["OPC与个体经济", "财经"], chapters: sentences.slice(0, 4).map((title, index) => ({ startSeconds: index * 120, title })), summaryModelVersion: "subtitle-rule-v1" }; }
 }

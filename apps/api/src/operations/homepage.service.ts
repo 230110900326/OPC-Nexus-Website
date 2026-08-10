@@ -34,7 +34,7 @@ export class HomepageService {
       this.ranking.feed({ mode: FeedMode.HOT, scope: RankScope.POLICY, window: RankWindow.WEEK, limit: 50 }).then((result) => result.items),
       this.ranking.feed({ mode: FeedMode.HOT, scope: RankScope.VIDEO, window: RankWindow.WEEK, limit: 50 }).then((result) => result.items),
       this.ranking.feed({ mode: FeedMode.HOT, scope: RankScope.COMMUNITY, window: RankWindow.WEEK, limit: 50 }).then((result) => result.items),
-      this.events.find({ where: { status: EventStatus.PUBLISHED, endsAt: MoreThan(now) }, relations: { organizer: true }, order: { startsAt: "ASC" }, take: 6 }),
+      this.events.find({ where: { status: EventStatus.PUBLISHED, endsAt: MoreThan(new Date(now.getTime() - 7 * 86_400_000)) }, relations: { organizer: true }, order: { startsAt: "DESC" }, take: 8 }),
       this.creators.find({ where: { isEnabled: true, authorizationStatus: AuthorizationStatus.AUTHORIZED }, relations: { accounts: true }, order: { trustLevel: "DESC", createdAt: "ASC" }, take: 6 }),
     ]);
 
@@ -63,10 +63,10 @@ export class HomepageService {
       modules,
       manualRecommendations,
       sections: {
-        recommendations: recommendations.slice(0, 8),
-        policies: policies.slice(0, 4),
-        videos: videos.slice(0, 4),
-        discussions: discussions.slice(0, 5),
+        recommendations: recommendations.filter(hasCover).slice(0, 8),
+        policies: policies.filter(hasCover).slice(0, 4),
+        videos: videos.filter(hasCover).slice(0, 4),
+        discussions: discussions.filter(hasCover).slice(0, 5),
         events: upcomingEvents,
         creators: creators.map((creator) => ({
           id: creator.id,
@@ -96,6 +96,8 @@ function resolveModules(configs: HomepageConfig[], now: Date) {
   }
   return modules.sort((a, b) => a.sortOrder - b.sortOrder);
 }
+
+function hasCover(item: { coverImageUrl?: string | null }) { return Boolean(item.coverImageUrl); }
 
 function publicConfig(config: HomepageConfig) {
   return {

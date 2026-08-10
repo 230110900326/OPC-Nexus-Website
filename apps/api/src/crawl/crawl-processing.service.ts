@@ -37,6 +37,7 @@ export class CrawlProcessingService {
     const agentAnalysis = input.agentAnalysis ?? {}; const decision = typeof agentAnalysis.decision === "string" ? agentAnalysis.decision : null; if (decision === "irrelevant") return { article: null, duplicateOf: null, filtered: true };
     // 过滤"早报/周报/聚合盘点"类内容：这类把多条新闻塞进一篇，不应作为单篇文章入库
     if (isRoundupTitle(input.title)) return { article: null, duplicateOf: null, filtered: true };
+    if (this.hasSensitiveContent(input.title, input.content)) { this.logger.warn(`Filtered sensitive: ${input.title.slice(0, 60)}`); return { article: null, duplicateOf: null, filtered: true }; }
     const classification = await this.classify(`${input.title}\n${input.content}`); const fallbackSummary = this.summary(input.content); const agentSummary = typeof agentAnalysis.core_summary === "string" ? agentAnalysis.core_summary.trim().slice(0, 800) : ""; const matchedTerms = Array.isArray(agentAnalysis.matched_terms) ? agentAnalysis.matched_terms.filter((value): value is string => typeof value === "string").slice(0, 30) : []; const affectedEntities = Array.isArray(agentAnalysis.affected_entities) ? agentAnalysis.affected_entities.filter((value): value is string => typeof value === "string").slice(0, 30) : []; const heatScore = typeof agentAnalysis.heat_score === "number" ? Math.max(0, Math.min(100, agentAnalysis.heat_score)) : 0; const agentVersion = typeof agentAnalysis.agent_version === "string" ? agentAnalysis.agent_version.slice(0, 40) : null; const slug = `crawl-${createHash("sha256").update(canonicalUrl).digest("hex").slice(0, 16)}`; const isPublished = source.autoPublish && decision !== "review";
     // 政策自动归类：优先采纳智能体的 policy / policy_interpretation 分类，而不只依赖采集源类型
     const requestedType = input.type ?? ArticleType.NEWS; const agentCategory = typeof agentAnalysis.category === "string" ? agentAnalysis.category : ""; const type = requestedType === ArticleType.POLICY || agentCategory === "policy" || agentCategory === "policy_interpretation" ? ArticleType.POLICY : requestedType;
@@ -75,6 +76,24 @@ export class CrawlProcessingService {
   async recordLinkCheck(articleId: string, statusCode: number | null, redirectUrl?: string, errorMessage?: string) { await this.article(articleId); const healthy = Boolean(statusCode && statusCode >= 200 && statusCode < 400); return this.linkChecks.save(this.linkChecks.create({ article: { id: articleId } as Article, statusCode, redirectUrl: redirectUrl ?? null, errorMessage: errorMessage ?? null, isHealthy: healthy })); }
   private async article(id: string) { const article = await this.articles.findOneBy({ id }); if (!article) throw new NotFoundException("文章不存在"); return article; }
   private fingerprint(content: string) { return createHash("sha256").update(content.replace(/\s+/g, "").toLowerCase()).digest("hex"); }
+  private sensitivePatterns: RegExp[] = [
+    /习近平/, /李克强/, /胡锦涛/, /温家宝/, /江泽民/, /邓小平/, /毛泽东/, /周恩来/,
+    /六四/, /天安门/, /法轮功/, /flg/i, /藏独/, /疆独/, /台独/, /港独/,
+    /习近平/i, /栗战书/, /汪洋/, /王沪宁/, /赵乐际/, /韩正/, /李强/, /丁薛祥/,
+    /共匪/, /中共黑手/, /专制/, /独裁/, /暴政/, /民主运动/, /三退/,
+    /八九/, /64事件/, /坦克人/, /tank.man/i, /tiananmen/i, /falun/i, /falu.?gong/i,
+    /天安門/, /天安门事件/, /六四事件/, /1989.*天安/,
+    /淫秽/, /色情/, /赌博/, /赌场/, /彩票.*预测/, /裸体/,
+    /枪支/, /毒品/, /海洛因/, /冰毒/, /大麻.*购买/, /摇头丸/,
+    /翻墙/, /VPN.*推荐/, /vpn.*provider/i, /科学上网/,
+  ];
+  private hasSensitiveContent(title: string, content: string): boolean {
+    const text = `${title} ${content.slice(0, 2000)}`;
+    for (const pattern of this.sensitivePatterns) {
+      if (pattern.test(text)) return true;
+    }
+    return false;
+  }
   private async appendSource(articleId: string, name: string, url: string) { const exists = await this.articleSources.exists({ where: { article: { id: articleId }, url } }); if (!exists) await this.articleSources.save(this.articleSources.create({ article: { id: articleId } as Article, name, url, isPrimary: false })); }
   private videoPlatform(url: string): VideoPlatform { const host = new URL(url).hostname.toLowerCase(); if (host === "youtu.be" || host.endsWith("youtube.com")) return VideoPlatform.YOUTUBE; if (host.endsWith("bilibili.com")) return VideoPlatform.BILIBILI; if (host.endsWith("douyin.com")) return VideoPlatform.DOUYIN; if (host.endsWith("qq.com")) return VideoPlatform.TENCENT; throw new BadRequestException("视频来源仅支持哔哩哔哩、腾讯视频、YouTube 和抖音链接"); }
   private async classify(text: string) { const terms = await this.keywords.find({ where: { isActive: true } }); const result: Record<string, number> = {}; for (const term of terms) if (text.includes(term.keyword)) result[term.industry] = (result[term.industry] ?? 0) + Number(term.weight); const total = Object.values(result).reduce((sum, value) => sum + value, 0); return Object.fromEntries(Object.entries(result).map(([key, value]) => [key, Math.round((value / total) * 100) / 100])); }
