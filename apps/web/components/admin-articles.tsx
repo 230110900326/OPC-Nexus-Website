@@ -28,6 +28,7 @@ export function AdminArticles() {
   // Video state
   const [videoData, setVideoData] = useState<AdminVideoPage | null>(null);
   const [videoPlatform, setVideoPlatform] = useState("");
+  const [videoPage, setVideoPage] = useState(1);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -53,12 +54,12 @@ export function AdminArticles() {
   useEffect(() => {
     if (!user || tab !== "videos") return;
     setVideoData(null);
-    const query: Record<string, string | number | undefined> = { limit: 30 };
+    const query: Record<string, string | number | undefined> = { page: videoPage, limit: 20 };
     if (videoPlatform) query.platform = videoPlatform;
     getAdminVideos(query)
       .then(setVideoData)
       .catch((reason) => setError(reason instanceof Error ? reason.message : "视频加载失败"));
-  }, [videoPlatform, user, tab]);
+  }, [videoPlatform, videoPage, user, tab]);
 
   async function toggleVideo(id: string, publish: boolean) {
     try {
@@ -91,7 +92,7 @@ export function AdminArticles() {
       {/* Tab bar */}
       <div className="content-tabs">
         <button className={tab === "articles" ? "active" : ""} onClick={() => { setTab("articles"); setError(""); }}>文章</button>
-        <button className={tab === "videos" ? "active" : ""} onClick={() => { setTab("videos"); setError(""); }}>视频</button>
+        <button className={tab === "videos" ? "active" : ""} onClick={() => { setTab("videos"); setVideoPage(1); setError(""); }}>视频</button>
       </div>
 
       {tab === "articles" && <>
@@ -127,7 +128,7 @@ export function AdminArticles() {
 
       {tab === "videos" && <>
         <div className="admin-filters">
-          <label>平台<select value={videoPlatform} onChange={(e) => setVideoPlatform(e.target.value)}>
+          <label>平台<select value={videoPlatform} onChange={(e) => { setVideoPlatform(e.target.value); setVideoPage(1); }}>
             <option value="">全部平台</option>
             {Object.entries(platformLabels).map(([v, l]) => <option value={v} key={v}>{l}</option>)}
           </select></label>
@@ -158,6 +159,14 @@ export function AdminArticles() {
               ))}</tbody>
             </table>
             {videoData.items.length === 0 && <p className="ops-state">没有匹配的视频。</p>}
+          </div>
+        )}
+        {videoData && videoData.pagination.totalPages > 1 && (
+          <div className="ops-pagination">
+            <button disabled={videoPage <= 1} onClick={() => setVideoPage((p) => p - 1)}>上一页</button>
+            <span>{videoPage} / {videoData.pagination.totalPages}</span>
+            <button disabled={videoPage >= videoData.pagination.totalPages} onClick={() => setVideoPage((p) => p + 1)}>下一页</button>
+            <small>共 {videoData.pagination.total} 个视频</small>
           </div>
         )}
       </>}
