@@ -3,7 +3,6 @@ import { BrandLogo } from "./brand-logo";
 
 const links = [
   { href: "/admin/dashboard", label: "数据看板", key: "dashboard" },
-  { href: "/admin/homepage", label: "首页编排", key: "homepage" },
   { href: "/admin/audit-logs", label: "操作日志", key: "audit" },
   { href: "/admin/articles", label: "内容", key: "articles" },
   { href: "/admin/events", label: "活动", key: "events" },

@@ -1,0 +1,8 @@
+健康检查: 200 OK
+admin 登录: OK
+发评论: OK
+children 存在且为数组: PASS
+回复评论: OK
+回复挂到 children: PASS
+清理: DELETE 1 DELETE 0
+=== 完成 ===
