@@ -2298,6 +2298,7 @@ select:focus-visible {
 .user-table th { text-align:left; padding:10px 12px; border-bottom:2px solid var(--line); color:var(--ink-soft); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.05em; }
 .user-table td { padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:middle; }
 .user-table tbody tr:hover { background:rgba(0,0,0,.02); }
+.user-table .row-expanded td { border-bottom:0; }
 .user-table .row-expanded { background:rgba(63,122,118,.04); }
 .user-cell-main { display:flex; align-items:center; gap:10px; }
 .user-cell-main strong { display:block; font-size:14px; }
@@ -2317,7 +2318,7 @@ select:focus-visible {
 .ops-btn-sm:disabled { opacity:.4; cursor:not-allowed; }
 .ops-btn-sm.danger { color:#dc2626; border-color:rgba(239,68,68,.3); }
 .ops-btn-sm.danger:hover { background:rgba(239,68,68,.06); }
-.user-action-row td { padding:0; }
+.user-action-row td { padding:0; border-bottom:0; }
 .user-action-panel { display:flex; gap:24px; padding:16px 12px; flex-wrap:wrap; background:rgba(246,244,239,.5); }
 .user-action-panel fieldset { border:1px solid var(--line); border-radius:8px; padding:12px 16px; flex:1; min-width:240px; }
 .user-action-panel legend { font-weight:600; font-size:13px; color:var(--ink-soft); padding:0 4px; }
