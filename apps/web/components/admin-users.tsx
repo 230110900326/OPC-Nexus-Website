@@ -188,8 +188,10 @@ function UserRow({
             </div>
           </div>
         </td>
-        <td className="role-cell">
-          {user.roles.map((r) => <span key={r} className="role-tag">{ROLE_LABELS[r] || r}</span>)}
+        <td>
+          <div className="role-cell">
+            {user.roles.map((r) => <span key={r} className="role-tag">{ROLE_LABELS[r] || r}</span>)}
+          </div>
         </td>
         <td>{statusBadge}</td>
         <td className="date-cell">{new Date(user.createdAt).toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit" })}</td>
