@@ -66,7 +66,7 @@ export class HomepageService {
         recommendations: recommendations.filter(hasCover).slice(0, 8),
         policies: policies.filter(hasCover).slice(0, 4),
         videos: videos.filter(hasCover).slice(0, 4),
-        discussions: discussions.filter(hasCover).slice(0, 5),
+        discussions: discussions.slice(0, 5),
         events: upcomingEvents,
         creators: creators.map((creator) => ({
           id: creator.id,

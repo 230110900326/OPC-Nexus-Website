@@ -108,6 +108,10 @@ export class RankingService {
 
   private async feedAll(input: FeedQueryDto, userId?: string): Promise<FeedItem[]> {
     let items = await this.candidates(input.scope);
+    if (input.industry) {
+      const keyword = input.industry.trim();
+      items = items.filter((item) => item.industry?.includes(keyword));
+    }
     const user = userId ? await this.users.findOneBy({ id: userId }) : null;
     const followed = userId ? await this.follows.find({ where: { follower: { id: userId } } }) : [];
     if (input.mode === FeedMode.FOLLOWING) {
