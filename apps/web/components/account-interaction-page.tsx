@@ -37,7 +37,7 @@ export function AccountInteractionPage({ kind }: { kind: Kind }) {
   if (loading) return <main className="account-sub-page"><div className="account-sub-loading"><span className="account-sub-spinner" /><p>正在同步…</p></div></main>;
   if (error) return (
     <main className="account-sub-page">
-      <header className="account-sub-header"><Link className="auth-brand" href="/"><span>OPC</span> NEXUS</Link><div className="account-header-actions"><Link href="/account">个人资料</Link><Link href="/community">社区广场</Link></div></header>
+      <header className="account-sub-header"><Link className="auth-brand" href="/"><span>OPC</span> NEXUS</Link><div className="account-header-actions"><Link href="/">← 返回首页</Link><Link href="/">← 返回首页</Link><Link href="/account">个人资料</Link><Link href="/community">社区广场</Link></div></header>
       <section className="account-sub-shell"><p className="content-state" role="alert">{error}</p><Link href="/auth" className="back-link">← 前往登录</Link></section>
     </main>
   );

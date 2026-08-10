@@ -27,6 +27,7 @@ export default function BrowsingHistoryPage() {
       <header className="account-sub-header">
         <Link className="auth-brand" href="/"><span>OPC</span> NEXUS</Link>
         <div className="account-header-actions">
+          <Link href="/">← 返回首页</Link>
           <Link href="/account">个人资料</Link>
           <Link href="/account/posts">我的讨论</Link>
           <Link href="/account/demands">我的需求</Link>

@@ -50,6 +50,7 @@ export default function MyPostsPage() {
       <header className="account-sub-header">
         <Link className="auth-brand" href="/"><span>OPC</span> NEXUS</Link>
         <div className="account-header-actions">
+          <Link href="/">← 返回首页</Link>
           <Link href="/account">个人资料</Link>
           <Link href="/community">社区广场</Link>
           <Link className="demand-primary" href="/community/new">发起讨论 →</Link>
@@ -70,6 +71,7 @@ export default function MyPostsPage() {
       <header className="account-sub-header">
         <Link className="auth-brand" href="/"><span>OPC</span> NEXUS</Link>
         <div className="account-header-actions">
+          <Link href="/">← 返回首页</Link>
           <Link href="/account">个人资料</Link>
           <Link href="/community">社区广场</Link>
           <Link className="demand-primary" href="/community/new">发起讨论 →</Link>
