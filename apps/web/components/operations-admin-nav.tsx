@@ -9,6 +9,7 @@ const links = [
   { href: "/admin/events", label: "活动", key: "events" },
   { href: "/admin/demands", label: "需求", key: "demands" },
   { href: "/admin/moderation", label: "审核", key: "moderation" },
+  { href: "/admin/users", label: "用户", key: "users" },
   { href: "/admin/crawl", label: "采集", key: "crawl" },
 ];
 

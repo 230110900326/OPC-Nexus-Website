@@ -37,6 +37,17 @@ export type AuditAction = "admin.login" | "content.create" | "content.edit" | "c
 export type AuditLog = { id: string; actorName: string; actorEmail: string; action: AuditAction; targetType: string | null; targetId: string | null; metadata: Record<string, unknown>; createdAt: string };
 export type AuditLogPage = { items: AuditLog[]; pagination: { page: number; limit: number; total: number; totalPages: number } };
 
+export type AdminUser = {
+  id: string; email: string; displayName: string; avatarUrl: string | null;
+  industry: string | null; company: string | null; jobTitle: string | null;
+  isActive: boolean; certificationStatus: "pending" | "approved" | "rejected" | null;
+  banReason: string | null; bannedAt: string | null;
+  roles: string[]; createdAt: string; updatedAt: string;
+};
+export type AdminUserPage = { items: AdminUser[]; pagination: { page: number; limit: number; total: number; totalPages: number } };
+export type ListUsersQuery = { page?: number; limit?: number; search?: string; role?: string; status?: string };
+export type UpdateUserInput = { isActive?: boolean; roles?: string[]; banReason?: string };
+
 async function publicRequest<T>(path: string, options?: RequestInit) {
   const response = await fetch(`${apiBaseUrl}${path}`, { cache: "no-store", ...options, headers: { "Content-Type": "application/json", ...options?.headers } });
   const body = await response.json() as Envelope<T>;
@@ -52,3 +63,5 @@ export const updateHomepageConfig = (id: string, input: Partial<HomepageConfigIn
 export const deleteHomepageConfig = (id: string) => authorizedRequest<{ deleted: boolean }>(`/admin/homepage/configs/${id}`, { method: "DELETE" });
 export const getOperationsDashboard = (from: string, to: string) => authorizedRequest<DashboardData>(`/admin/operations/dashboard?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`);
 export function getAuditLogs(query: { actor?: string; action?: string; from?: string; to?: string; page?: number }) { const params = new URLSearchParams(); Object.entries(query).forEach(([key, value]) => { if (value !== undefined && value !== "") params.set(key, String(value)); }); return authorizedRequest<AuditLogPage>(`/admin/audit-logs?${params}`); }
+export function getAdminUsers(query: ListUsersQuery = {}) { const params = new URLSearchParams(); Object.entries(query).forEach(([key, value]) => { if (value !== undefined && value !== "") params.set(key, String(value)); }); return authorizedRequest<AdminUserPage>(`/admin/users?${params}`); }
+export function updateAdminUser(id: string, input: UpdateUserInput) { return authorizedRequest<AdminUser>(`/admin/users/${id}`, { method: "PATCH", body: JSON.stringify(input) }); }

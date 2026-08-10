@@ -7,6 +7,8 @@ import { EventRegistration } from "../database/entities/event-registration.entit
 import { Event } from "../database/entities/event.entity";
 import { HomepageConfig } from "../database/entities/homepage-config.entity";
 import { RecommendationEvent } from "../database/entities/recommendation-event.entity";
+import { Role } from "../database/entities/role.entity";
+import { User } from "../database/entities/user.entity";
 import { RankingModule } from "../ranking/ranking.module";
 import { HomepageConfigService } from "./homepage-config.service";
 import { HomepageService } from "./homepage.service";
@@ -14,7 +16,7 @@ import { OperationsDashboardService } from "./operations-dashboard.service";
 import { OperationsController } from "./operations.controller";
 
 @Module({
-  imports: [AuthModule, AuditModule, RankingModule, TypeOrmModule.forFeature([HomepageConfig, RecommendationEvent, Event, EventRegistration, Creator])],
+  imports: [AuthModule, AuditModule, RankingModule, TypeOrmModule.forFeature([HomepageConfig, RecommendationEvent, Event, EventRegistration, Creator, User, Role])],
   controllers: [OperationsController],
   providers: [HomepageService, HomepageConfigService, OperationsDashboardService],
   exports: [HomepageService, HomepageConfigService, OperationsDashboardService],
