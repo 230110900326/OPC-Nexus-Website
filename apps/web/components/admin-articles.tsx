@@ -117,7 +117,7 @@ export function AdminArticles() {
                   <td><span className={`status-pill ${article.status}`}>{statusText[article.status]}</span></td>
                   <td>{article.category?.name ?? "—"}</td>
                   <td>{article.publishedAt ? new Date(article.publishedAt).toLocaleDateString("zh-CN") : "—"}</td>
-                  <td><Link href={`/admin/articles/${article.id}`}>编辑</Link></td>
+                  <td><Link className="ops-btn-sm" href={`/admin/articles/${article.id}`}>编辑</Link></td>
                 </tr>
               ))}</tbody>
             </table>
