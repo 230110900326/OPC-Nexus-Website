@@ -87,9 +87,7 @@ export default function AccountPage() {
             <div><dt>身份</dt><dd>{user.roles.join(" · ")}</dd></div>
           </dl>
           <div className="profile-card-links">
-            <Link href="/account/demands" className="btn-card-link">供需工作台</Link>
             <Link href="/account/posts" className="btn-card-link">我的讨论</Link>
-            <Link href="/account/favorites" className="btn-card-link">我的收藏</Link>
             <Link href="/account/likes" className="btn-card-link">我的点赞</Link>
             <Link href="/account/comments" className="btn-card-link">我的评论</Link>
             <Link href="/account/history" className="btn-card-link">浏览历史</Link>
