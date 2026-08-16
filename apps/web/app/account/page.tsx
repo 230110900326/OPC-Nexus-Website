@@ -21,6 +21,13 @@ export default function AccountPage() {
     load.then(u => { setUser(u); if (u.avatarUrl) setAvatarPreview(u.avatarUrl); }).catch(() => router.replace("/auth"));
   }, [router]);
 
+  // 保存成功提示 5 秒后自动消失
+  useEffect(() => {
+    if (!saved) return;
+    const timer = setTimeout(() => setSaved(false), 5000);
+    return () => clearTimeout(timer);
+  }, [saved]);
+
   function handleAvatarFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;

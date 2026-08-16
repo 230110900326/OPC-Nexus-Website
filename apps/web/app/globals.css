@@ -54,7 +54,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 /* Shared OPC Nexus brand lockup generated from the supplied master artwork. */
 .brand-logo { display:block; flex:0 0 auto; width:150px; line-height:0; text-decoration:none; border:0; }.brand-logo img { display:block; width:100%; height:auto; border:0; outline:none; vertical-align:bottom; }
 .brand,.auth-brand { display:block; flex:0 0 auto; width:150px; height:42px; background:url("/brand/opc-nexus-lockup-dark.png") center/cover no-repeat; color:transparent; font-size:0; line-height:0; letter-spacing:0; }.brand > span,.auth-brand > span { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
-.auth-brand { background-image:url("/brand/opc-nexus-lockup-light.png"); }
+.auth-brand { background-image:url("/brand/opc-nexus-lockup-dark.png"); }
 @media (max-width:760px) { .brand-logo,.brand,.auth-brand { width:132px; height:37px; } }
 /* Stage E: events and inbox */
 .header-actions { display: flex; align-items: center; gap: 1rem; }
