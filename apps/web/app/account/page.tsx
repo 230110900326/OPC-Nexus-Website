@@ -162,7 +162,7 @@ export default function AccountPage() {
             {/* ── Actions ── */}
             <div className="form-actions">
               <button className="btn-primary" type="submit">保存资料</button>
-              <Link href="/" className="btn-ghost">返回首页</Link>
+              <Link href="/" className="btn-outline">← 返回首页</Link>
             </div>
           </form>
         </section>
