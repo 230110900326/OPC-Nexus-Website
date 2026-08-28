@@ -63,9 +63,12 @@ export class HomepageService {
       modules,
       manualRecommendations,
       sections: {
-        recommendations: recommendations.filter(hasCover).slice(0, 8),
-        policies: policies.filter(hasCover).slice(0, 4),
-        videos: videos.filter(hasCover).slice(0, 4),
+        // A missing cover is a presentation concern, not a publication rule.
+        // The web client has a text/SVG fallback, so do not hide otherwise
+        // published content from the homepage feed.
+        recommendations: recommendations.slice(0, 8),
+        policies: policies.slice(0, 4),
+        videos: videos.slice(0, 4),
         discussions: discussions.slice(0, 5),
         events: upcomingEvents,
         creators: creators.map((creator) => ({
@@ -96,8 +99,6 @@ function resolveModules(configs: HomepageConfig[], now: Date) {
   }
   return modules.sort((a, b) => a.sortOrder - b.sortOrder);
 }
-
-function hasCover(item: { coverImageUrl?: string | null }) { return Boolean(item.coverImageUrl); }
 
 function publicConfig(config: HomepageConfig) {
   return {

@@ -62,8 +62,6 @@ export default function AccountPage() {
   async function leave() { await signOut(); router.replace("/"); }
   if (!user) return <main className="account-loading">正在核验你的身份…</main>;
 
-  const canManageContent = user.roles.some((role) => ["editor", "operator", "admin"].includes(role));
-  const canModerate = user.roles.some((role) => ["moderator", "operator", "admin"].includes(role));
   const userInitial = user.displayName.slice(0, 1);
 
   return (
@@ -71,10 +69,9 @@ export default function AccountPage() {
       <header className="account-header">
         <Link className="auth-brand" href="/"><span>OPC</span> NEXUS</Link>
         <div className="account-header-actions">
-          <Link href="/community/new">发起讨论</Link>
-          {canManageContent && <Link href="/admin/articles">内容工作台</Link>}
-          {canModerate && <Link href="/admin/moderation">举报审核</Link>}
-          <button onClick={leave}>退出登录</button>
+          <Link className="account-header-primary-action" href="/community/new">发起讨论</Link>
+          <Link className="account-header-primary-action" href="/demands/new">发布需求</Link>
+          <button className="account-header-signout" type="button" onClick={leave}>退出登录</button>
         </div>
       </header>
 

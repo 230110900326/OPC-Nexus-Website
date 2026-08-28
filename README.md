@@ -61,4 +61,8 @@ npm run test
 npm run build
 ```
 
+## Cloudflare 部署
+
+Cloudflare 可以作为域名、HTTPS、WAF/CDN 和 Tunnel 入口；当前 NestJS、PostgreSQL、Redis 与 Playwright crawler 仍需在一台可运行 Docker 的主机上运行。完整的 R2、数据库迁移和 Tunnel 配置见 [`docs/cloudflare-deployment.md`](docs/cloudflare-deployment.md)。
+
 后续开发以《财经社群与行业内容聚合平台建设方案》为准。

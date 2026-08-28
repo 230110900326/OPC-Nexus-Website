@@ -22,7 +22,7 @@ def settings() -> SimpleNamespace:
 def test_html_discovery_skips_the_index_page_when_article_links_exist() -> None:
     runner = CrawlRunner(settings(), FakeApi())
     runner._fetch = lambda _url, _domain: ("<a href='/article-a'>A</a><a href='/article-b'>B</a>", "https://news.example.test/index")  # type: ignore[method-assign]
-    assert runner._discover_urls("https://news.example.test/index", "news.example.test", "html") == ["https://news.example.test/article-a", "https://news.example.test/article-b"]
+    assert runner._discover_items("https://news.example.test/index", "news.example.test", "html") == ["https://news.example.test/article-a", "https://news.example.test/article-b"]
 
 
 def test_runner_reports_failed_sources_without_importing_content() -> None:

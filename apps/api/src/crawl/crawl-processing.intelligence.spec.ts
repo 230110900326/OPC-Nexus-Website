@@ -42,6 +42,11 @@ describe("CrawlProcessingService znt integration", () => {
     expect(result.article).toEqual(expect.objectContaining({ summary: "智能体生成的摘要", heatScore: 42, status: ArticleStatus.PUBLISHED, summaryModelVersion: "znt-2.0.1" }));
   });
 
+  it("uses a generated cover when a crawler sends a blank cover URL", async () => {
+    const result = await service.ingest({ ...input("relevant"), coverImageUrl: "   " });
+    expect(result.article).toEqual(expect.objectContaining({ coverImageUrl: expect.stringMatching(/^\/api\/covers\/crawl-/) }));
+  });
+
   it("keeps review decisions out of automatic publishing", async () => {
     const result = await service.ingest(input("review"));
     expect(result.article).toEqual(expect.objectContaining({ status: ArticleStatus.REVIEW }));

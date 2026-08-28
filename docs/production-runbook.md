@@ -44,6 +44,19 @@ docker compose --env-file .env -f infra/docker-compose.yml exec \
 
 对象存储同步是可选 profile：配置 `S3_BACKUP_URI`、标准 AWS 凭据后运行 `docker compose --profile backup-s3 up -d backup-uploader`。所有密钥只从环境变量读取。
 
+### 域名切换与历史内容恢复
+
+域名、Cloudflare Tunnel 或前端容器的切换不会删除内容；正式数据保存在 Docker 命名卷 `opc-nexus_postgres-data`，备份保存在 `opc-nexus_postgres-backups`。除非确定要永久清空数据，**不要**执行带 `-v` 的 `docker compose down`。
+
+如果旧版采集库 `pc/news.db` 中存在已发布视频、而当前视频频道为空，可先预演再恢复：
+
+```bash
+node infra/scripts/restore-legacy-videos.mjs --dry-run
+node infra/scripts/restore-legacy-videos.mjs
+```
+
+脚本只迁移旧库中带视频链接的记录，并可安全重复执行；需要以旧库内容修复早期错误编码时使用 `--refresh-legacy`。它不会导入原始新闻缓存，也不会覆盖人工编辑过的视频资料。
+
 ## HTTPS
 
 IP 地址部署先使用 HTTP。域名解析完成后，按 `infra/nginx.https.conf.example` 挂载真实证书、启用 443，并将 `COOKIE_SECURE=true`、`NEXT_PUBLIC_SITE_URL`、`WEB_ORIGIN` 和 `API_PUBLIC_URL` 改为 HTTPS 地址后重建 Web/API。

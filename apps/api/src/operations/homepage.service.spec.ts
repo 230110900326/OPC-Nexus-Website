@@ -36,6 +36,11 @@ describe("Stage I homepage assembly", () => {
     expect(result.modules.some((item) => item.moduleKey === HomepageModuleKey.VIDEOS)).toBe(false);
     expect(result.sections.events[0]).toEqual(expect.objectContaining({ registrationCount: 7, url: `/events/${event.id}` }));
     expect(result.sections.creators[0]).toEqual(expect.objectContaining({ name: "OPC 作者", platforms: ["bilibili"] }));
+    // Cover-less, published feed items must remain visible. The UI renders a
+    // generated or text fallback instead of treating a missing cover as hidden.
+    expect(result.sections.recommendations).toEqual([expect.objectContaining({ id: feedItem.id, coverImageUrl: null })]);
+    expect(result.sections.policies).toEqual([expect.objectContaining({ id: feedItem.id, coverImageUrl: null })]);
+    expect(result.sections.videos).toEqual([expect.objectContaining({ id: feedItem.id, coverImageUrl: null })]);
     expect(ranking.feed).toHaveBeenCalledTimes(4);
   });
 });

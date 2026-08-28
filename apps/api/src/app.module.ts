@@ -62,6 +62,10 @@ import { ContentFormattingModule } from "./content-formatting/content-formatting
 import { RequestLoggingInterceptor } from "./common/request-logging.interceptor";
 import { CoversModule } from "./covers/covers.module";
 
+const postgresSsl = process.env.DB_SSL === "true"
+  ? { rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== "false" }
+  : undefined;
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -70,6 +74,7 @@ import { CoversModule } from "./covers/covers.module";
       validationSchema: Joi.object({
         API_PORT: Joi.number().port().default(4000), WEB_ORIGIN: Joi.string().uri().default("http://localhost:3000"),
         DB_HOST: Joi.string().hostname().default("localhost"), DB_PORT: Joi.number().port().default(5432),
+        DB_SSL: Joi.boolean().default(false), DB_SSL_REJECT_UNAUTHORIZED: Joi.boolean().default(true),
         DB_NAME: Joi.string().default("opc_nexus"), DB_USER: Joi.string().default("opc"), DB_PASSWORD: Joi.string().min(1).required(),
         JWT_ACCESS_SECRET: Joi.string().min(32).required(), JWT_REFRESH_SECRET: Joi.string().min(32).required(),
         JWT_ACCESS_TTL: Joi.string().default("15m"), JWT_REFRESH_TTL: Joi.string().default("7d"),
@@ -83,7 +88,8 @@ import { CoversModule } from "./covers/covers.module";
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
     TypeOrmModule.forRoot({
       type: "postgres", host: process.env.DB_HOST, port: Number(process.env.DB_PORT), username: process.env.DB_USER,
-      password: process.env.DB_PASSWORD, database: process.env.DB_NAME, entities: [User, Role, Permission, Category, Tag, Article, ArticleSource, ForumSection, Post, Comment, Like, Favorite, Follow, Report, ModerationLog, Event, EventRegistration, Notification, CrawlSource, CrawlJob, CrawlLog, ContentKeyword, CrawlDiscovery, LinkCheck, Creator, CreatorAccount, Video, VideoSyncLog, ContentMetric, InteractionAudit, HomepageConfig, RecommendationEvent, AuditLog, OpcDemand, OpcDemandConnect, DemandBoardConfig], synchronize: false,
+      password: process.env.DB_PASSWORD, database: process.env.DB_NAME, ssl: postgresSsl,
+      entities: [User, Role, Permission, Category, Tag, Article, ArticleSource, ForumSection, Post, Comment, Like, Favorite, Follow, Report, ModerationLog, Event, EventRegistration, Notification, CrawlSource, CrawlJob, CrawlLog, ContentKeyword, CrawlDiscovery, LinkCheck, Creator, CreatorAccount, Video, VideoSyncLog, ContentMetric, InteractionAudit, HomepageConfig, RecommendationEvent, AuditLog, OpcDemand, OpcDemandConnect, DemandBoardConfig], synchronize: false,
     }),
     AuditModule,
     AuthModule,

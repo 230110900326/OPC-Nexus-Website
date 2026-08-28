@@ -195,7 +195,7 @@ services:
     mem_limit: 64m
     read_only: true
     ports:
-      - "${PUBLIC_HTTP_PORT:-8080}:80"
+      - "${GATEWAY_BIND_ADDRESS:-0.0.0.0}:${PUBLIC_HTTP_PORT:-8080}:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     tmpfs:

@@ -1,0 +1,19 @@
+# Optional Cloudflare Tunnel connector.
+# Start with:
+#   docker compose --env-file .env -f infra/docker-compose.yml \
+#     -f infra/docker-compose.cloudflare.yml --profile full --profile cloudflare up -d
+#
+# The tunnel's public hostname and ingress target are configured in the
+# Cloudflare dashboard. Use http://gateway:80 as the origin from this network.
+
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:${CLOUDFLARED_TAG:-latest}
+    profiles: ["cloudflare"]
+    restart: unless-stopped
+    init: true
+    command: ["tunnel", "--no-autoupdate", "run", "--token", "${CLOUDFLARE_TUNNEL_TOKEN:-}"]
+    depends_on:
+      gateway:
+        condition: service_healthy
+    security_opt: ["no-new-privileges:true"]

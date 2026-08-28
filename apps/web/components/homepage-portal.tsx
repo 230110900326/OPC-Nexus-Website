@@ -81,7 +81,9 @@ export function HomepagePortal() {
   if (error || !data) return <main className="opc-home"><div className="home-failure" role="alert"><p className="eyebrow">HOMEPAGE SIGNAL INTERRUPTED</p><h1>首页内容未能接通。</h1><p>{error || "首页聚合接口没有返回数据。"}</p><button onClick={() => void load()}>重新加载</button></div></main>;
 
   const signals = data.sections.recommendations.slice(0, 4);
-  const carouselItems = data.sections.recommendations.map(withCover).filter((item) => item.coverImageUrl).slice(0, 5);
+  // HeroCarousel can render a readable text treatment without an image.
+  // Keep every published recommendation eligible for the carousel.
+  const carouselItems = data.sections.recommendations.map(withCover).slice(0, 5);
   return <main className="opc-home">
     <section className="home-focus">
       <HeroCarousel items={carouselItems} />

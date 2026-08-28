@@ -18,6 +18,13 @@ function proxyCover(url: string | null): string | null {
   if (!url) return null;
   return url.replace(/https?:\/\/i\d+\.hdslb\.com\/bfs\//, "/bcovers/");
 }
+function durationLabel(seconds: number): string {
+  if (!Number.isFinite(seconds) || seconds <= 0) return "时长待补全";
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+}
+function viewsLabel(views: number | undefined): string {
+  return typeof views === "number" && views > 0 ? `${views} 浏览` : "浏览数据待补全";
+}
 function extractBvid(url: string): string | null {
   const m = url.match(/\/video\/(BV[A-Za-z0-9]+)/);
   return m ? m[1] : null;
@@ -74,8 +81,8 @@ export default function VideoDetailPage() {
           <p className="eyebrow">{video.platform.toUpperCase()} · {video.creatorAccount.creator.name}{tag ? ` · ${tag}` : ""}</p>
           <h1>{title}</h1>
           <div className="detail-meta">
-            <span>{Math.floor(video.durationSeconds / 60)}:{String(video.durationSeconds % 60).padStart(2, "0")}</span>
-            <span>{video.platformMetrics.views ?? 0} 浏览</span>
+            <span>{durationLabel(video.durationSeconds)}</span>
+            <span>{viewsLabel(video.platformMetrics.views)}</span>
           </div>
         </header>
 

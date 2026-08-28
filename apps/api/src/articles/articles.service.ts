@@ -52,7 +52,7 @@ export class ArticlesService {
 
   async create(input: CreateArticleDto, actor: AuthUser) {
     await this.ensureSlug(input.slug);
-    const article = this.articles.create({ slug: input.slug.trim(), title: input.title.trim(), summary: input.summary.trim(), type: input.type, originalUrl: input.originalUrl, coverImageUrl: input.coverImageUrl ?? `/api/covers/${input.slug.trim()}`, publishedAt: input.publishedAt ? new Date(input.publishedAt) : null, operator: { id: actor.id } as User, ...this.policyFieldsForCreate(input) });
+    const article = this.articles.create({ slug: input.slug.trim(), title: input.title.trim(), summary: input.summary.trim(), type: input.type, originalUrl: input.originalUrl, coverImageUrl: input.coverImageUrl?.trim() || `/api/covers/${input.slug.trim()}`, publishedAt: input.publishedAt ? new Date(input.publishedAt) : null, operator: { id: actor.id } as User, ...this.policyFieldsForCreate(input) });
     article.category = input.categoryId ? await this.category(input.categoryId) : null;
     article.tags = await this.resolveTags(input.tagIds ?? []);
     article.sources = this.normalizeSources(input.sources ?? []) as ArticleSource[];

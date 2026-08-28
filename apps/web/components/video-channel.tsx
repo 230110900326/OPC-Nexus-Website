@@ -8,6 +8,13 @@ function proxyCover(url: string | null): string | null {
   if (!url) return null;
   return url.replace(/https?:\/\/i\d+\.hdslb\.com\/bfs\//, "/bcovers/");
 }
+function durationLabel(seconds: number): string {
+  if (!Number.isFinite(seconds) || seconds <= 0) return "时长待补全";
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+}
+function viewsLabel(views: number | undefined): string {
+  return typeof views === "number" && views > 0 ? `${views} 浏览` : "数据待补全";
+}
 function splitTitle(raw: string): { tag: string; title: string } {
   const m = raw.match(/^(.+?)[_—\-–]\s*([^_—\-–]+)_bilibili$/i);
   if (m) return { tag: m[2].trim(), title: m[1].trim() };
@@ -77,12 +84,12 @@ export function VideoChannel() {
         return <Link key={video.id} href={`/videos/${video.id}`} className="video-card">
           <div className="video-cover">
             {video.coverUrl ? <img src={proxyCover(video.coverUrl) ?? video.coverUrl} alt="" /> : <span>16:9</span>}
-            <small>{Math.floor(video.durationSeconds / 60)}:{String(video.durationSeconds % 60).padStart(2, "0")}</small>
+            <small>{durationLabel(video.durationSeconds)}</small>
           </div>
           <p className="eyebrow">{video.platform} · {video.creatorAccount.creator.name}{tag ? ` · ${tag}` : ""}</p>
           <h2>{title}</h2>
           <p>{video.keyPoints[0] || "暂无概要"}</p>
-          <footer>{video.industryTags.join(" · ")} <span>{video.platformMetrics.views ?? 0} 浏览</span></footer>
+          <footer>{video.industryTags.join(" · ")} <span>{viewsLabel(video.platformMetrics.views)}</span></footer>
         </Link>;
       })}
       {!loading && items.length === 0 && <p className="content-state">暂无已发布视频。</p>}

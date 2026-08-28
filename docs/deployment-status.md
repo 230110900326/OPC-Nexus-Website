@@ -27,3 +27,6 @@
 3. 调整 API 的部署入口，或将 API 部署到 Railway、Render 等后端平台。
 4. API 可用后，在前端设置 `NEXT_PUBLIC_API_BASE_URL` 指向正式 API 地址。
 
+## Cloudflare 迁移
+
+如果不再使用阿里云 ECS，优先采用 Cloudflare DNS/WAF/CDN + 新 Docker 主机的混合方案；完整的环境变量、R2、数据库迁移和 Tunnel 说明见 [`docs/cloudflare-deployment.md`](cloudflare-deployment.md)。
